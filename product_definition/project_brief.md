@@ -4,7 +4,8 @@ Esta aplicación se basa en que el usuario describe algo que quiere hacer y un g
 
 La aplicación dispone de foros de discusión que funcionan como chats donde ocurren los debates. El usuario inicia creando un nuevo foro; al hacerlo, se muestra lo siguiente:
 
-- Primero, selecciona cuántos agentes IA desea (de 2 a 5).
+- Primero, selecciona qué modelo de IA actuará como moderador del debate; este modelo se encargará de analizar la idea del usuario, plantear preguntas para clarificarla y organizar las rondas de debate. La lista de modelos disponibles para moderar se detalla más adelante.
+- Luego selecciona cuántos agentes IA desea para los debates (de 2 a 5).
 - Según los agentes seleccionados, asigna a cada agente el modelo de IA que lo controlará; esta lista de modelos se detalla más adelante. A cada agente también se le asigna un nombre y un color (icono de persona sin género). Hay un selector de color para cada agente.
 - Además, hay un área de texto donde el usuario explica la idea y lo que quiere lograr con el debate. En este campo hay un tooltip que indica qué debe incluirse y, adicionalmente, los documentos que desea que se generen.
 - Un botón «Enviar» que envía todo lo anterior para ser procesado por la IA; este botón incluye una confirmación para evitar envíos accidentales.
@@ -67,11 +68,19 @@ Además, la aplicación debe poder visualizar los Markdown formateados a HTML pa
 
 Al final, se pueden exportar todos los documentos Markdown en un ZIP; estos archivos exportados serán las versiones finales, sin comentarios de los agentes.
 
+Hay una pantalla para configurar los proveedores de IA y sus modelos, donde se pueden seleccionar cuáles proveedores presentar y, además, para cada proveedor, la adición de las API keys necesarias para su uso.
+
+
 ### Reglas importantes
 
 **El moderador nunca debate ni toma decisiones sobre la solución o la estructura de los documentos; su responsabilidad es facilitar que la discusión fluya, cerrar fases, evitar estancamientos y forzar a que los agentes lleguen a acuerdos sobre cómo resolver la problemática, la estructura y el contenido de los documentos.**
 
 Todos los diálogos que se muestran después de pulsar «Enviar» deben centrarse vertical y horizontalmente y aplicar un efecto de blur al contenido subyacente.
+
+El modelo de IA seleccionado para el moderador es el que se encarga de llevar la ventana de contexto de la conversación, así que en esta ventana de contexto es donde se van añadiendo los mensajes que responden los agentes participantes. Los agentes no tienen acceso a la ventana de contexto de los demás agentes, solo a la del moderador. El moderador es el encargado de llevar toda la información y de compartirla con los agentes.
+Para que la ventana de contexto no se llene, se hace una compactación automática cuando esta llega a un 60% de su capacidad. Para Copilot SDK esto se hace automáticamente, pero para los demás proveedores se debe implementar esta funcionalidad. Todos deben simular la misma funcionalidad que tiene Copilot SDK.
+
+Cuando se supera la parte de preguntas y respuestas y se genera el documento de entendimiento, la ventana de contexto del moderador se reinicia y se añade el documento de entendimiento como primer mensaje, para que los agentes lo lean y lo tengan como referencia para el debate. Luego, a medida que los agentes van aportando ideas o escribiendo los documentos, el moderador va añadiendo esos mensajes a su ventana de contexto para que los demás agentes puedan leerlos y comentarlos.
 
 ### Información técnica de la aplicación
 
@@ -83,12 +92,18 @@ Todos los diálogos que se muestran después de pulsar «Enviar» deben centrars
 
 - La interfaz debe ser moderna e intuitiva.
 - Debe estar creada en Next.js y Tailwind CSS.
-- Para la IA se podrá usar Copilot SDK, OpenRouter o DeepSeek; al seleccionar el proveedor, se muestra el grupo (Copilot SDK, OpenRouter o DeepSeek) y luego el modelo de IA.
+- Para la IA se podrán usar los siguientes grupos de proveedores (Copilot SDK, OpenRouter, DeepSeek, OpenAI, Gemini, Anthropic, Ollama); al seleccionar el proveedor y luego los modelos de IA que este proveedor ofrece. Solo serán modelos de texto, no de imagen o video.
 
 - Por ejemplo, para Copilot se deben mostrar los modelos disponibles y el costo relativo (1x, 3x, 0.33x, 0x).
 - Para OpenRouter se muestran los modelos con su precio por tokens de entrada y salida.
 - Para DeepSeek se muestran sus modelos (actualmente 2) y el precio por tokens de entrada y salida.
+- Para OpenAI se muestran los modelos disponibles y el precio por tokens de entrada y salida.
+- Para Gemini se muestran los modelos disponibles y el precio por tokens de entrada y salida.
+- Para Anthropic se muestran los modelos disponibles y el precio por tokens de entrada y salida.
+- Para Ollama se muestran los modelos disponibles y el precio por tokens de entrada y salida.
 - Para los tres grupos debe mostrarse, si es posible, las ventanas de contexto de cada modelo para input y output.
+
+- Para Copilot SDK se debe usar únicamente la opción de instalar Copilot CLI y de este obtener el token de acceso para usar sus modelos. 
 
 - Las opciones de idioma y tema (oscuro o claro) estarán representadas por dos botones con iconos sencillos y pequeños en la parte superior derecha de la pantalla.
 
