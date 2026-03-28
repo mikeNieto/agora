@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ágora — Clarificación</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body class="app-wrapper">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="index.html" class="app-header__logo">
+        <div class="app-header__logo-icon">Ag</div>
+        <span class="app-header__logo-name">Ágora</span>
+      </a>
+      <div class="app-header__breadcrumb">
+        <span class="app-header__breadcrumb-sep">›</span>
+        <a href="index.html" style="color: var(--text-secondary); font-size: var(--text-sm);">Foros</a>
+        <span class="app-header__breadcrumb-sep">›</span>
+        <span class="app-header__breadcrumb-current">Arquitectura e-commerce</span>
+      </div>
+    </div>
+    <div class="app-header__right">
+      <button class="icon-btn" data-lang-toggle title="Switch to English">EN</button>
+      <button class="icon-btn" data-theme-toggle title="Modo claro">☀️</button>
+    </div>
+  </header>
+
+  <!-- ── Page ── -->
+  <main class="page-content page-content--narrow">
+
+    <!-- Heading -->
+    <div class="section-heading mb-6">
+      <div class="section-heading__icon">💬</div>
+      <div>
+        <h1 class="section-heading__title">Clarificación del Moderador</h1>
+        <p class="section-heading__subtitle">El moderador necesita más información para garantizar un debate preciso</p>
+      </div>
+    </div>
+
+    <!-- Moderator intro card -->
+    <div class="card mb-6" style="border-left: 3px solid var(--accent-primary);">
+      <div class="flex items-start gap-4">
+        <div class="agent-avatar agent-avatar--lg" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: 2px solid rgba(124,90,243,.3);">M</div>
+        <div style="flex: 1;">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-bold text-primary">Moderador</span>
+            <span class="badge badge--active" style="font-size: 10px;">Ronda 1 de 3</span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.7;">
+            He analizado tu descripción sobre la arquitectura de microservicios para e-commerce. 
+            La idea es clara en términos generales, pero necesito aclarar algunos puntos específicos 
+            antes de iniciar el debate para asegurar que los agentes tengan contexto suficiente 
+            y los documentos generados sean precisos y aplicables a tu caso.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="qa-progress">
+      <span class="qa-progress__text" id="qa-progress-text">Pregunta 1 de 4</span>
+      <div class="qa-progress__bar-wrap">
+        <div class="qa-progress__bar" id="qa-progress-bar" style="width: 25%;"></div>
+      </div>
+      <span style="font-size: var(--text-xs); color: var(--text-tertiary);">Ronda <strong style="color: var(--text-primary);">1</strong> / 3</span>
+    </div>
+
+    <!-- ── Question card (dynamic) ── -->
+    <div class="qa-question-card" id="qa-question-container">
+      <!-- Content rendered by JS -->
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="flex items-center justify-between mt-6" id="qa-nav">
+      <button class="btn btn-ghost" id="qa-back-btn" onclick="qaBack()" disabled>
+        ← Anterior
+      </button>
+      <div class="flex items-center gap-3">
+        <!-- Dots indicator -->
+        <div class="flex items-center gap-2" id="qa-dots"></div>
+        <button class="btn btn-primary" id="qa-next-btn" onclick="qaNext()">
+          Siguiente →
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Confirm final submit modal ── -->
+  <div class="modal-overlay" id="confirm-qa-modal">
+    <div class="modal">
+      <div class="modal__icon modal__icon--success">✓</div>
+      <div class="modal__title">Enviar Respuestas</div>
+      <div class="modal__desc">
+        Has respondido todas las preguntas de esta ronda. El moderador revisará tus respuestas 
+        junto con la descripción original. Si las respuestas son suficientes, comenzará el debate; 
+        de lo contrario, habrá una nueva ronda de preguntas (máximo 3 rondas).
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn-secondary" data-modal-close="confirm-qa-modal">Revisar</button>
+        <a href="forum-review.html" class="btn btn-primary">
+          Enviar Respuestas →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/forum-qa.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ágora — Foros de Debate</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="icon" type="image/png" href="assets/app-icon.png" />
+</head>
+<body class="app-wrapper">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="index.html" class="app-header__logo">
+        <img src="assets/app-icon.png" alt="Ágora logo" class="app-header__logo-icon-image" style="width: 32px; height: 32px;" />
+        <span class="app-header__logo-name">Ágora</span>
+      </a>
+    </div>
+    <div class="app-header__right">
+      <button class="icon-btn" data-lang-toggle title="Switch to English">EN</button>
+      <button class="icon-btn" data-theme-toggle title="Modo claro">☀️</button>
+    </div>
+  </header>
+
+  <!-- ── Page ── -->
+  <main class="page-content">
+
+    <!-- Page heading -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 style="font-size: var(--text-3xl); font-weight: 800; letter-spacing: -.03em;">
+          Foros de Debate
+        </h1>
+        <p class="mt-1" style="font-size: var(--text-base);">
+          Crea debates entre agentes de IA para resolver problemas y generar documentación
+        </p>
+      </div>
+      <a href="forum-create.html" class="btn btn-primary">
+        <span>＋</span>
+        Nuevo Foro
+      </a>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="flex gap-4 mb-8 flex-wrap">
+      <div class="card" style="padding: var(--space-4) var(--space-6); flex: 1; min-width: 140px;">
+        <div class="text-sm text-secondary mb-1">Total de Foros</div>
+        <div style="font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary);">5</div>
+      </div>
+      <div class="card" style="padding: var(--space-4) var(--space-6); flex: 1; min-width: 140px;">
+        <div class="text-sm text-secondary mb-1">En Debate</div>
+        <div style="font-size: var(--text-2xl); font-weight: 800; color: var(--accent-success);">2</div>
+      </div>
+      <div class="card" style="padding: var(--space-4) var(--space-6); flex: 1; min-width: 140px;">
+        <div class="text-sm text-secondary mb-1">Completados</div>
+        <div style="font-size: var(--text-2xl); font-weight: 800; color: var(--accent-primary);">2</div>
+      </div>
+      <div class="card" style="padding: var(--space-4) var(--space-6); flex: 1; min-width: 140px;">
+        <div class="text-sm text-secondary mb-1">En Revisión</div>
+        <div style="font-size: var(--text-2xl); font-weight: 800; color: var(--accent-warning);">1</div>
+      </div>
+    </div>
+
+    <!-- Forums grid -->
+    <div class="grid grid-auto">
+
+      <!-- New forum card -->
+      <a href="forum-create.html" class="new-forum-card">
+        <div class="new-forum-card__icon">✦</div>
+        <div class="new-forum-card__text" style="font-size: var(--text-base); font-weight: 700;">Crear Nuevo Foro</div>
+        <div style="font-size: var(--text-sm); color: var(--text-tertiary);">Inicia un debate entre agentes de IA</div>
+      </a>
+
+      <!-- Forum 1 — In Debate -->
+      <a href="forum-debate.html" class="forum-card">
+        <div class="flex items-center justify-between gap-3">
+          <span class="badge badge--debate badge--dot">Debatiendo</span>
+          <span class="text-xs text-tertiary">hace 23 min</span>
+        </div>
+        <div>
+          <div class="forum-card__title">Arquitectura de microservicios para plataforma e-commerce con alta disponibilidad</div>
+          <div class="forum-card__desc mt-2">Diseñar una arquitectura escalable que soporte picos de tráfico de hasta 100k usuarios concurrentes, con tolerancia a fallos y despliegue en Kubernetes.</div>
+        </div>
+        <div class="forum-card__footer">
+          <div class="flex items-center gap-2">
+            <!-- Agent avatars -->
+            <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="sky">B</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald">C</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="amber">D</div>
+            <span class="text-xs text-tertiary" style="margin-left: 6px;">4 agentes</span>
+          </div>
+          <div class="forum-card__meta">
+            <span>🌀</span>
+            <span>Ronda 2 — Lluvia de ideas</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Forum 2 — Q&A -->
+      <a href="forum-qa.html" class="forum-card">
+        <div class="flex items-center justify-between gap-3">
+          <span class="badge badge--qa badge--dot">Preguntas</span>
+          <span class="text-xs text-tertiary">hace 1h</span>
+        </div>
+        <div>
+          <div class="forum-card__title">Sistema de autenticación y autorización con roles dinámicos para SaaS multitenant</div>
+          <div class="forum-card__desc mt-2">Implementar un sistema de permisos granular que permita a cada tenant definir sus propios roles sin afectar la seguridad global de la plataforma.</div>
+        </div>
+        <div class="forum-card__footer">
+          <div class="flex items-center gap-2">
+            <div class="agent-avatar agent-avatar--sm" data-color="violet">X</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="rose">Y</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="sky">Z</div>
+            <span class="text-xs text-tertiary" style="margin-left: 6px;">3 agentes</span>
+          </div>
+          <div class="forum-card__meta">
+            <span>💬</span>
+            <span>2 preguntas restantes · Ronda 1</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Forum 3 — Review -->
+      <a href="forum-review.html" class="forum-card">
+        <div class="flex items-center justify-between gap-3">
+          <span class="badge badge--review badge--dot">Revisión</span>
+          <span class="text-xs text-tertiary">hace 3h</span>
+        </div>
+        <div>
+          <div class="forum-card__title">Pipeline de CI/CD para despliegue zero-downtime en producción</div>
+          <div class="forum-card__desc mt-2">Definir una estrategia de despliegue continuo con pruebas automatizadas, feature flags y rollback automático ante fallos críticos.</div>
+        </div>
+        <div class="forum-card__footer">
+          <div class="flex items-center gap-2">
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald">E</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="amber">F</div>
+            <span class="text-xs text-tertiary" style="margin-left: 6px;">2 agentes</span>
+          </div>
+          <div class="forum-card__meta">
+            <span>📋</span>
+            <span>Revisando doc. de entendimiento</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Forum 4 — Done (active debate) -->
+      <a href="forum-debate.html" class="forum-card">
+        <div class="flex items-center justify-between gap-3">
+          <span class="badge badge--debate badge--dot">Debatiendo</span>
+          <span class="text-xs text-tertiary">hace 45 min</span>
+        </div>
+        <div>
+          <div class="forum-card__title">Diseño de API REST para integración con servicios de terceros y webhooks</div>
+          <div class="forum-card__desc mt-2">Crear un contrato de API con versioning, rate limiting y sistema de webhooks resiliente con reintentos exponenciales.</div>
+        </div>
+        <div class="forum-card__footer">
+          <div class="flex items-center gap-2">
+            <div class="agent-avatar agent-avatar--sm" data-color="coral">M</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="violet">N</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald">O</div>
+            <span class="text-xs text-tertiary" style="margin-left: 6px;">3 agentes</span>
+          </div>
+          <div class="forum-card__meta">
+            <span>📄</span>
+            <span>Doc. 2/4 — Generando</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Forum 5 — Completed -->
+      <a href="forum-documents.html" class="forum-card">
+        <div class="flex items-center justify-between gap-3">
+          <span class="badge badge--done">✓ Completado</span>
+          <span class="text-xs text-tertiary">ayer</span>
+        </div>
+        <div>
+          <div class="forum-card__title">Estrategia de caché distribuida con Redis para reducción de latencia</div>
+          <div class="forum-card__desc mt-2">Definir patrones de invalidación de caché, estrategias de precalentamiento y manejo de inconsistencias en entornos distribuidos.</div>
+        </div>
+        <div class="forum-card__footer">
+          <div class="flex items-center gap-2">
+            <div class="agent-avatar agent-avatar--sm" data-color="sky">P</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="rose">Q</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="amber">R</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="coral">S</div>
+            <span class="text-xs text-tertiary" style="margin-left: 6px;">4 agentes</span>
+          </div>
+          <div class="forum-card__meta">
+            <span>📦</span>
+            <span>5 documentos generados</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Forum 6 — Draft -->
+      <div class="forum-card" style="opacity: .6; cursor: default;">
+        <div class="flex items-center justify-between gap-3">
+          <span class="badge badge--draft">Borrador</span>
+          <span class="text-xs text-tertiary">hace 2 días</span>
+        </div>
+        <div>
+          <div class="forum-card__title">Modelo de datos para sistema de facturación y pagos recurrentes</div>
+          <div class="forum-card__desc mt-2">Sin descripción adicional.</div>
+        </div>
+        <div class="forum-card__footer">
+          <div class="flex items-center gap-2">
+            <div class="agent-avatar agent-avatar--sm" data-color="violet">T</div>
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald">U</div>
+            <span class="text-xs text-tertiary" style="margin-left: 6px;">2 agentes</span>
+          </div>
+          <div class="forum-card__meta">
+            <span>✏️</span>
+            <span>Borrador sin enviar</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /grid -->
+
+  </main>
+
+  <!-- ── Toast container ── -->
+  <div class="toast-container"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

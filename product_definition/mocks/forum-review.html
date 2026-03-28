@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ágora — Revisión</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body class="app-wrapper">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="index.html" class="app-header__logo">
+        <div class="app-header__logo-icon">Ag</div>
+        <span class="app-header__logo-name">Ágora</span>
+      </a>
+      <div class="app-header__breadcrumb">
+        <span class="app-header__breadcrumb-sep">›</span>
+        <a href="index.html" style="color: var(--text-secondary); font-size: var(--text-sm);">Foros</a>
+        <span class="app-header__breadcrumb-sep">›</span>
+        <span class="app-header__breadcrumb-current">Revisión del Entendimiento</span>
+      </div>
+    </div>
+    <div class="app-header__right">
+      <button class="icon-btn" data-lang-toggle title="Switch to English">EN</button>
+      <button class="icon-btn" data-theme-toggle title="Modo claro">☀️</button>
+    </div>
+  </header>
+
+  <!-- ── Page ── -->
+  <main class="page-content" style="max-width: 900px;">
+
+    <!-- Heading -->
+    <div class="section-heading mb-6">
+      <div class="section-heading__icon">📋</div>
+      <div>
+        <h1 class="section-heading__title">Revisión del Entendimiento</h1>
+        <p class="section-heading__subtitle">
+          El moderador ha preparado el documento de entendimiento y la configuración del debate. 
+          Puedes ajustar cualquier componente antes de iniciar.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Understanding Document ── -->
+    <div class="card mb-6">
+      <div class="card-header" style="margin-bottom: var(--space-5);">
+        <div class="flex items-center gap-3" style="flex: 1;">
+          <div style="width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--accent-primary-subtle); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;">📄</div>
+          <div>
+            <div class="card-title">Documento de Entendimiento</div>
+            <div class="card-subtitle">Generado por el moderador • Editable</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="toggleEditDoc()">✏️ Editar</button>
+      </div>
+
+      <!-- Rendered markdown view -->
+      <div id="doc-view" class="markdown-viewer">
+        <h2>Arquitectura de Microservicios para Plataforma E-commerce B2B</h2>
+
+        <h3>Contexto del Problema</h3>
+        <p>
+          La organización cuenta con una plataforma e-commerce B2B construida sobre una arquitectura 
+          monolítica en <strong>PHP/Laravel</strong> con frontend en <strong>React</strong>. El sistema 
+          gestiona catálogos de más de <strong>500,000 SKUs</strong> con precios personalizados por cliente 
+          y procesamiento de órdenes en tiempo real.
+        </p>
+
+        <h3>Objetivos del Debate</h3>
+        <ul>
+          <li>Diseñar una arquitectura de microservicios escalable que supere las limitaciones actuales del monolito</li>
+          <li>Garantizar alta disponibilidad con <strong>SLA del 99.9%</strong></li>
+          <li>Soportar picos de hasta <strong>50,000 pedidos/hora</strong> durante campañas especiales</li>
+          <li>Definir una estrategia de migración progresiva (1-2 años) por dominios de negocio</li>
+          <li>Mantener el stack de backend (PHP/Laravel) como base en las fases iniciales</li>
+        </ul>
+
+        <h3>Restricciones y Contexto Técnico</h3>
+        <ul>
+          <li><strong>Presupuesto de infraestructura:</strong> $2,000–$10,000/mes (AWS)</li>
+          <li><strong>Equipo DevOps:</strong> Desarrolladores con manejo de infraestructura, sin especialistas K8s → preferir servicios gestionados (EKS)</li>
+          <li><strong>Plazo:</strong> 1 a 2 años con migración progresiva</li>
+          <li><strong>Stack actual:</strong> PHP/Laravel, React, MySQL (inferido)</li>
+        </ul>
+
+        <h3>Documentos a Generar</h3>
+        <ol>
+          <li>Documento de Arquitectura de Solución (HLD)</li>
+          <li>Diagrama de componentes C4 (nivel 2 y 3)</li>
+          <li>Plan de migración del monolito a microservicios</li>
+          <li>Análisis de riesgos técnicos y estrategias de mitigación</li>
+          <li>Estimación de costos de infraestructura en AWS</li>
+        </ol>
+
+        <h3>Criterios de Éxito</h3>
+        <p>
+          El debate será exitoso cuando los agentes alcancen consenso sobre la arquitectura propuesta, 
+          la estrategia de migración y los cinco documentos estén completos, revisados y sin comentarios 
+          pendientes de resolución.
+        </p>
+      </div>
+
+      <!-- Editable textarea (hidden by default) -->
+      <div id="doc-edit" style="display: none;">
+        <textarea class="form-textarea form-textarea--tall" style="min-height: 400px; font-family: var(--font-mono); font-size: var(--text-sm);">## Arquitectura de Microservicios para Plataforma E-commerce B2B
+
+### Contexto del Problema
+La organización cuenta con una plataforma e-commerce B2B construida sobre una arquitectura monolítica en **PHP/Laravel** con frontend en **React**. El sistema gestiona catálogos de más de **500,000 SKUs** con precios personalizados por cliente y procesamiento de órdenes en tiempo real.
+
+### Objetivos del Debate
+- Diseñar una arquitectura de microservicios escalable que supere las limitaciones actuales del monolito
+- Garantizar alta disponibilidad con **SLA del 99.9%**
+- Soportar picos de hasta **50,000 pedidos/hora** durante campañas especiales
+- Definir una estrategia de migración progresiva (1-2 años) por dominios de negocio
+- Mantener el stack de backend (PHP/Laravel) como base en las fases iniciales
+
+### Restricciones y Contexto Técnico
+- **Presupuesto de infraestructura:** $2,000–$10,000/mes (AWS)
+- **Equipo DevOps:** Desarrolladores con manejo de infraestructura, sin especialistas K8s
+- **Plazo:** 1 a 2 años con migración progresiva
+- **Stack actual:** PHP/Laravel, React, MySQL
+
+### Documentos a Generar
+1. Documento de Arquitectura de Solución (HLD)
+2. Diagrama de componentes C4 (nivel 2 y 3)
+3. Plan de migración del monolito a microservicios
+4. Análisis de riesgos técnicos y estrategias de mitigación
+5. Estimación de costos de infraestructura en AWS</textarea>
+        <div class="flex justify-end gap-3 mt-3">
+          <button class="btn btn-ghost btn-sm" onclick="cancelEditDoc()">Cancelar</button>
+          <button class="btn btn-primary btn-sm" onclick="saveEditDoc()">Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Agents Review ── -->
+    <div class="card mb-6">
+      <div class="card-header" style="margin-bottom: var(--space-5);">
+        <div>
+          <div class="card-title">Agentes del Debate</div>
+          <div class="card-subtitle">3 agentes configurados · 1 moderador (auto)</div>
+        </div>
+      </div>
+
+      <!-- Moderator -->
+      <div class="mb-4">
+        <div class="text-xs font-bold text-tertiary" style="text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--space-3);">Moderador</div>
+        <div class="agent-row">
+          <div class="agent-avatar" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; border: 2px solid rgba(124,90,243,.3);">M</div>
+          <div class="agent-row__info">
+            <div class="agent-row__name">Moderador</div>
+            <div class="agent-row__model">GPT-4.1 (Copilot SDK) · Contexto: 128k tokens</div>
+          </div>
+          <div class="agent-row__badge">
+            <span>🎯</span>
+            <span>Facilitador</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" style="margin: var(--space-4) 0;" />
+
+      <!-- Agents list -->
+      <div class="text-xs font-bold text-tertiary" style="text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--space-3);">Agentes</div>
+      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+        <div class="agent-row">
+          <div class="agent-avatar" data-color="coral">A</div>
+          <div class="agent-row__info">
+            <div class="agent-row__name">Architect</div>
+            <div class="agent-row__model">GPT-4.1 · Copilot SDK · Ctx: 128k/16k · Costo: 3x</div>
+          </div>
+          <div class="agent-row__badge">
+            <span>🟠</span>
+            <span>Coral</span>
+          </div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-avatar" data-color="sky">B</div>
+          <div class="agent-row__info">
+            <div class="agent-row__name">Reviewer</div>
+            <div class="agent-row__model">Claude Sonnet 4.5 · OpenRouter · $3/$15 · Ctx: 200k/16k</div>
+          </div>
+          <div class="agent-row__badge">
+            <span>🔵</span>
+            <span>Sky</span>
+          </div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-avatar" data-color="emerald">C</div>
+          <div class="agent-row__info">
+            <div class="agent-row__name">Security</div>
+            <div class="agent-row__model">DeepSeek-V3 · DeepSeek · $0.27/$1.10 · Ctx: 64k/8k</div>
+          </div>
+          <div class="agent-row__badge">
+            <span>🟢</span>
+            <span>Emerald</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── System Prompt ── -->
+    <div class="system-prompt-editor mb-6">
+      <div class="system-prompt-editor__header">
+        <div class="system-prompt-editor__title">
+          <span>⚙️</span>
+          System Prompt Común
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-tertiary">Aplica a todos los agentes</span>
+          <button class="btn btn-secondary btn-sm" onclick="toggleSystemPrompt()">Expandir / Colapsar</button>
+        </div>
+      </div>
+      <div class="system-prompt-editor__body" id="system-prompt-body">
+        <div class="system-prompt-sections">
+
+          <div class="system-prompt-section">
+            <div class="system-prompt-section__head" onclick="toggleSection(this)">
+              <span style="font-size: .85rem; color: var(--accent-primary);">👤</span>
+              <span class="system-prompt-section__label">Rol e Identidad</span>
+              <span style="margin-left: auto; font-size: .8rem; color: var(--text-tertiary);">▼</span>
+            </div>
+            <div class="system-prompt-section__content">
+              <textarea class="system-prompt-section__textarea" rows="3">Eres un experto en arquitectura de software con más de 15 años de experiencia en sistemas distribuidos, microservicios y plataformas de alto tráfico. Tu tono es técnico, directo y colaborativo. Basas tus argumentos en evidencia y mejores prácticas de la industria.</textarea>
+            </div>
+          </div>
+
+          <div class="system-prompt-section">
+            <div class="system-prompt-section__head" onclick="toggleSection(this)">
+              <span style="font-size: .85rem; color: var(--accent-secondary);">🎯</span>
+              <span class="system-prompt-section__label">Tarea Principal</span>
+              <span style="margin-left: auto; font-size: .8rem; color: var(--text-tertiary);">▼</span>
+            </div>
+            <div class="system-prompt-section__content">
+              <textarea class="system-prompt-section__textarea" rows="3">Tu misión es colaborar con otros agentes de IA para debatir, proponer y refinar la arquitectura de microservicios para una plataforma e-commerce B2B de alta disponibilidad. Debes contribuir activamente en cada ronda, criticar constructivamente las propuestas de otros agentes y proponer mejoras basadas en el documento de entendimiento.</textarea>
+            </div>
+          </div>
+
+          <div class="system-prompt-section">
+            <div class="system-prompt-section__head" onclick="toggleSection(this)">
+              <span style="font-size: .85rem; color: var(--accent-warning);">📐</span>
+              <span class="system-prompt-section__label">Contexto y Reglas</span>
+              <span style="margin-left: auto; font-size: .8rem; color: var(--text-tertiary);">▼</span>
+            </div>
+            <div class="system-prompt-section__content">
+              <textarea class="system-prompt-section__textarea" rows="4">- Siempre leer el documento de entendimiento antes de responder
+- Considerar las restricciones de presupuesto ($2,000-$10,000/mes en AWS) y equipo (sin especialistas K8s)
+- Todas las respuestas en Markdown
+- Citar fuentes o referencias cuando sea posible
+- No repetir puntos ya acordados; enfocarse en aspectos pendientes
+- El moderador tiene la última palabra para cerrar debates</textarea>
+            </div>
+          </div>
+
+          <div class="system-prompt-section">
+            <div class="system-prompt-section__head" onclick="toggleSection(this)">
+              <span style="font-size: .85rem; color: var(--accent-danger);">🚫</span>
+              <span class="system-prompt-section__label">Restricciones</span>
+              <span style="margin-left: auto; font-size: .8rem; color: var(--text-tertiary);">▼</span>
+            </div>
+            <div class="system-prompt-section__content">
+              <textarea class="system-prompt-section__textarea" rows="3">- No proponer soluciones fuera del alcance definido sin justificación
+- No generar código de implementación (solo diseño y especificación)
+- No ignorar las restricciones de presupuesto y equipo
+- No bloquear el debate con argumentos circulares</textarea>
+            </div>
+          </div>
+
+        </div><!-- /sections -->
+      </div>
+    </div>
+
+    <!-- Warning box -->
+    <div class="warning-box mb-6">
+      <span class="warning-box__icon">⚠️</span>
+      <div>
+        <strong style="color: var(--text-primary);">Una vez iniciado, el debate no se puede deshacer.</strong>
+        Solo podrás pausarlo o detenerlo mediante los controles disponibles durante el proceso. Revisa cuidadosamente el documento de entendimiento y la configuración de los agentes antes de continuar.
+      </div>
+    </div>
+
+    <!-- ── Actions ── -->
+    <div class="flex items-center justify-between gap-4 mb-8">
+      <a href="forum-qa.html" class="btn btn-ghost">
+        ← Volver a Preguntas
+      </a>
+      <button class="btn btn-success" data-modal-open="confirm-debate-modal">
+        🚀 Iniciar Debate
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ── Confirm Debate Modal ── -->
+  <div class="modal-overlay" id="confirm-debate-modal">
+    <div class="modal">
+      <div class="modal__icon modal__icon--primary">🚀</div>
+      <div class="modal__title">¿Iniciar el Debate?</div>
+      <div class="modal__desc">
+        Los <strong>3 agentes</strong> comenzarán inmediatamente el proceso de debate. 
+        El moderador dirigirá las rondas de lluvia de ideas seguidas de la generación 
+        de los <strong>5 documentos</strong> solicitados.
+        <br/><br/>
+        Este proceso es automático y no requiere tu intervención. 
+        Solo podrás pausarlo o detenerlo si es necesario.
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn-secondary" data-modal-close="confirm-debate-modal">Revisar</button>
+        <a href="forum-debate.html" class="btn btn-success" style="font-size: var(--text-sm);">
+          🚀 Confirmar e Iniciar
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    function toggleEditDoc() {
+      const view = document.getElementById('doc-view');
+      const edit = document.getElementById('doc-edit');
+      view.style.display = 'none';
+      edit.style.display = 'block';
+    }
+    function cancelEditDoc() {
+      document.getElementById('doc-view').style.display = 'block';
+      document.getElementById('doc-edit').style.display = 'none';
+    }
+    function saveEditDoc() {
+      cancelEditDoc();
+      Toast.show('Documento de entendimiento actualizado', 'success');
+    }
+    function toggleSection(head) {
+      const content = head.nextElementSibling;
+      const arrow   = head.querySelector('span:last-child');
+      const isOpen  = content.style.display !== 'none';
+      content.style.display = isOpen ? 'none' : 'block';
+      if (arrow) arrow.textContent = isOpen ? '▶' : '▼';
+    }
+    function toggleSystemPrompt() {
+      const body = document.getElementById('system-prompt-body');
+      body.style.display = body.style.display === 'none' ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>

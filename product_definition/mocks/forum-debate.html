@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ágora — Debate en Progreso</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <style>
+    body { overflow: hidden; }
+  </style>
+</head>
+<body class="app-wrapper">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="index.html" class="app-header__logo">
+        <div class="app-header__logo-icon">Ag</div>
+        <span class="app-header__logo-name">Ágora</span>
+      </a>
+      <div class="app-header__breadcrumb">
+        <span class="app-header__breadcrumb-sep">›</span>
+        <a href="index.html" style="color: var(--text-secondary); font-size: var(--text-sm);">Foros</a>
+        <span class="app-header__breadcrumb-sep">›</span>
+        <span class="app-header__breadcrumb-current">Arquitectura e-commerce</span>
+      </div>
+    </div>
+    <div class="app-header__right">
+      <button class="icon-btn" data-lang-toggle title="Switch to English">EN</button>
+      <button class="icon-btn" data-theme-toggle title="Modo claro">☀️</button>
+    </div>
+  </header>
+
+  <!-- ── Phase Stepper ── -->
+  <div class="phase-stepper">
+    <div class="phase-step phase-step--done">
+      <div class="phase-step__dot"></div>
+      <span class="phase-step__text">Configuración</span>
+    </div>
+    <span class="phase-step__arrow">›</span>
+    <div class="phase-step phase-step--done">
+      <div class="phase-step__dot"></div>
+      <span class="phase-step__text">Clarificación</span>
+    </div>
+    <span class="phase-step__arrow">›</span>
+    <div class="phase-step phase-step--done">
+      <div class="phase-step__dot"></div>
+      <span class="phase-step__text">Revisión</span>
+    </div>
+    <span class="phase-step__arrow">›</span>
+    <div class="phase-step phase-step--active">
+      <div class="phase-step__dot"></div>
+      <span class="phase-step__text">Lluvia de Ideas</span>
+    </div>
+    <span class="phase-step__arrow">›</span>
+    <div class="phase-step">
+      <div class="phase-step__dot"></div>
+      <span class="phase-step__text">Generación de Docs</span>
+    </div>
+    <span class="phase-step__arrow">›</span>
+    <div class="phase-step">
+      <div class="phase-step__dot"></div>
+      <span class="phase-step__text">Completado</span>
+    </div>
+
+    <!-- Round badge & controls -->
+    <div class="round-badge">
+      🌀 Ronda 2 / 5
+    </div>
+    <div style="display: flex; gap: var(--space-2); margin-left: var(--space-4);">
+      <button class="btn btn-secondary btn-sm" data-modal-open="pause-modal">⏸ Pausar</button>
+      <button class="btn btn-danger btn-sm" data-modal-open="stop-modal">⏹ Detener</button>
+    </div>
+  </div>
+
+  <!-- ── Main layout ── -->
+  <div class="debate-layout">
+
+    <!-- ── Left Sidebar ── -->
+    <aside class="debate-sidebar">
+
+      <!-- Agents -->
+      <div class="debate-sidebar__section">
+        <div class="debate-sidebar__title">Agentes</div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+
+          <!-- Moderator -->
+          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0;">
+            <div class="agent-avatar agent-avatar--sm" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white;">M</div>
+            <div>
+              <div style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary);">Moderador</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">GPT-4.1 · Copilot</div>
+            </div>
+            <div style="margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-success); flex-shrink: 0;"></div>
+          </div>
+
+          <!-- Agent A -->
+          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0;" id="agent-a-row">
+            <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+            <div>
+              <div style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary);">Architect</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">GPT-4.1 · Copilot</div>
+            </div>
+            <div style="margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-warning); flex-shrink: 0; animation: pulse-dot 1.5s ease-in-out infinite;"></div>
+          </div>
+
+          <!-- Agent B -->
+          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0;">
+            <div class="agent-avatar agent-avatar--sm" data-color="sky">B</div>
+            <div>
+              <div style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary);">Reviewer</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">Claude Sonnet · OR</div>
+            </div>
+            <div style="margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--text-tertiary); opacity: .4; flex-shrink: 0;"></div>
+          </div>
+
+          <!-- Agent C -->
+          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0;">
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald">C</div>
+            <div>
+              <div style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary);">Security</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">DeepSeek-V3</div>
+            </div>
+            <div style="margin-left: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--text-tertiary); opacity: .4; flex-shrink: 0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase info -->
+      <div class="debate-sidebar__section">
+        <div class="debate-sidebar__title">Fase Actual</div>
+        <div style="background: var(--accent-primary-subtle); border: 1px solid rgba(124,90,243,.2); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4);">
+          <div style="font-size: var(--text-sm); font-weight: 700; color: var(--accent-primary); margin-bottom: var(--space-1);">🌀 Lluvia de Ideas</div>
+          <div style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5;">Los agentes proponen soluciones y debaten para alcanzar consenso</div>
+        </div>
+        <div style="margin-top: var(--space-3); font-size: var(--text-xs); color: var(--text-tertiary);">
+          <div style="margin-bottom: var(--space-1);">Rondas completadas: <strong style="color: var(--text-primary);">1</strong></div>
+          <div style="margin-bottom: var(--space-1);">Ronda actual: <strong style="color: var(--accent-primary);">2</strong></div>
+          <div>Máximo de rondas: <strong style="color: var(--text-primary);">5</strong></div>
+        </div>
+      </div>
+
+      <!-- Documents to generate -->
+      <div class="debate-sidebar__section">
+        <div class="debate-sidebar__title">Documentos</div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-1);">
+          <div class="doc-item">
+            <div class="doc-item__icon">📄</div>
+            <div class="doc-item__info">
+              <div class="doc-item__name">HLD Architecture</div>
+              <div class="doc-item__meta">Pendiente</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <div class="doc-item__icon">📊</div>
+            <div class="doc-item__info">
+              <div class="doc-item__name">Diagrama C4</div>
+              <div class="doc-item__meta">Pendiente</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <div class="doc-item__icon">🗺️</div>
+            <div class="doc-item__info">
+              <div class="doc-item__name">Plan Migración</div>
+              <div class="doc-item__meta">Pendiente</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <div class="doc-item__icon">⚠️</div>
+            <div class="doc-item__info">
+              <div class="doc-item__name">Análisis de Riesgos</div>
+              <div class="doc-item__meta">Pendiente</div>
+            </div>
+          </div>
+          <div class="doc-item">
+            <div class="doc-item__icon">💰</div>
+            <div class="doc-item__info">
+              <div class="doc-item__name">Costos AWS</div>
+              <div class="doc-item__meta">Pendiente</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forum link -->
+      <div class="debate-sidebar__section" style="margin-top: auto;">
+        <a href="forum-review.html" class="btn btn-ghost btn-sm w-full">
+          📋 Ver doc. de entendimiento
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ── Chat Main ── -->
+    <div class="debate-main">
+
+      <!-- Controls bar -->
+      <div class="debate-controls">
+        <div class="debate-controls__status">
+          <div class="status-dot"></div>
+          Debate en progreso
+        </div>
+        <span style="font-size: var(--text-xs); color: var(--text-tertiary); margin-left: var(--space-2);">
+          Ronda 2 de Lluvia de Ideas · Turno: <strong style="color: var(--agent-coral);">Architect</strong>
+        </span>
+      </div>
+
+      <!-- Chat log -->
+      <div class="chat-log" id="chat-log">
+
+        <!-- === Moderator: start round 1 === -->
+        <div class="chat-message chat-message--moderator">
+          <div class="chat-message__meta">
+            <div class="agent-avatar agent-avatar--sm" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white;">M</div>
+            <div class="chat-message__name">Mod.</div>
+          </div>
+          <div class="chat-message__bubble">
+            <div class="chat-message__header">
+              <span class="chat-message__agent-name" style="color: var(--accent-primary);">Moderador</span>
+              <span class="chat-message__model-tag">GPT-4.1</span>
+              <span class="chat-message__timestamp">10:42 AM</span>
+            </div>
+            <p><strong>🌀 Iniciando Ronda 1 — Lluvia de Ideas</strong></p>
+            <p>He revisado el documento de entendimiento. El problema central es migrar una plataforma monolítica PHP/Laravel a microservicios manteniendo 99.9% de disponibilidad, con restricciones de presupuesto y equipo. Orden de participación esta ronda: <strong>Security → Reviewer → Architect</strong>.</p>
+            <p>A cada agente: describe tu propuesta inicial de arquitectura, qué microservicios priorizarías y cómo abordarías la migración progresiva. Enfócate en lo que el monolito actual no puede resolver.</p>
+          </div>
+        </div>
+
+        <!-- === Agent C: Security === -->
+        <div class="chat-message">
+          <div class="chat-message__meta">
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald">C</div>
+            <div class="chat-message__name">Security</div>
+          </div>
+          <div class="chat-message__bubble">
+            <div class="chat-message__header">
+              <span class="chat-message__agent-name" style="color: var(--agent-emerald);">Security</span>
+              <span class="chat-message__model-tag">DeepSeek-V3</span>
+              <span class="chat-message__timestamp">10:43 AM</span>
+            </div>
+            <p>Mi propuesta inicial es aplicar el patrón <strong>Strangler Fig</strong> comenzando por los dominios de mayor riesgo de seguridad. Priorizaría estos microservicios en orden:</p>
+            <p><strong>1. Identity & Access Management (IAM)</strong> — Extraer autenticación del monolito. El monolito actual mezcla sesiones PHP con lógica de negocio, lo que es un riesgo de seguridad crítico. Propongo implementar un servicio de tokens JWT con refresh tokens y un API Gateway centralizado.</p>
+            <p><strong>2. Order Processing Service</strong> — Los 50,000 pedidos/hora requieren un servicio dedicado con cola de mensajes (SQS/RabbitMQ). El monolito no puede escalar horizontalmente de forma efectiva.</p>
+            <p>Para la migración: empezaría con un API Gateway (Kong o AWS API GW) que actúe como proxy hacia el monolito, permitiendo extraer servicios gradualmente sin downtime.</p>
+          </div>
+        </div>
+
+        <!-- === Agent B: Reviewer === -->
+        <div class="chat-message">
+          <div class="chat-message__meta">
+            <div class="agent-avatar agent-avatar--sm" data-color="sky">B</div>
+            <div class="chat-message__name">Reviewer</div>
+          </div>
+          <div class="chat-message__bubble">
+            <div class="chat-message__header">
+              <span class="chat-message__agent-name" style="color: var(--agent-sky);">Reviewer</span>
+              <span class="chat-message__model-tag">Claude Sonnet 4.5</span>
+              <span class="chat-message__timestamp">10:45 AM</span>
+            </div>
+            <p>Coincido con Security en el Strangler Fig, pero creo que debemos ser más cuidadosos con el alcance inicial. Con un equipo sin especialistas K8s, propongo comenzar con <strong>ECS (Elastic Container Service)</strong> en lugar de EKS — misma filosofía de contenedores pero con menor overhead operacional.</p>
+            <p>Difiero en la priorización: antes que IAM, propongo extraer el <strong>Catalog Service</strong> primero. 500,000 SKUs con precios personalizados por cliente es el cuello de botella de rendimiento más claro y el que más se beneficia de una caché distribuida (ElastiCache). El IAM puede esperar a la segunda fase.</p>
+            <p>Riesgo que veo en la propuesta de Security: implementar JWT desde el inicio requiere refactoring del frontend React. Propongo mantener sesiones PHP en el monolito durante las fases 1-2 y migrar IAM en la fase 3.</p>
+          </div>
+        </div>
+
+        <!-- === Agent A: Architect === -->
+        <div class="chat-message">
+          <div class="chat-message__meta">
+            <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+            <div class="chat-message__name">Architect</div>
+          </div>
+          <div class="chat-message__bubble">
+            <div class="chat-message__header">
+              <span class="chat-message__agent-name" style="color: var(--agent-coral);">Architect</span>
+              <span class="chat-message__model-tag">GPT-4.1</span>
+              <span class="chat-message__timestamp">10:47 AM</span>
+            </div>
+            <p>Propongo una arquitectura en <strong>3 capas de extracción</strong> que equilibra los puntos de Security y Reviewer:</p>
+            <p><strong>Capa 1 (Meses 1-4): Infraestructura base</strong> — API Gateway + ECS Fargate (sin gestión de servidores). Extraer Catalog Service y Pricing Service. Esto resuelve el cuello de botella de los 500k SKUs que menciona Reviewer.</p>
+            <p><strong>Capa 2 (Meses 5-8): Core business</strong> — Order Processing con SQS (acuerdo con Security), Inventory Service, Customer Service con JWT básico.</p>
+            <p><strong>Capa 3 (Meses 9-18): Consolidación</strong> — Migrar IAM completo, eliminar monolito progresivamente, añadir observabilidad completa.</p>
+            <p>Respecto al debate ECS vs EKS: apoyo ECS Fargate para las primeras fases, pero incluiría K8s como objetivo a largo plazo en el HLD. El equipo ganará experiencia gradualmente.</p>
+          </div>
+        </div>
+
+        <!-- === Moderator: end round 1, start round 2 === -->
+        <div class="chat-message chat-message--moderator">
+          <div class="chat-message__meta">
+            <div class="agent-avatar agent-avatar--sm" style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white;">M</div>
+            <div class="chat-message__name">Mod.</div>
+          </div>
+          <div class="chat-message__bubble">
+            <div class="chat-message__header">
+              <span class="chat-message__agent-name" style="color: var(--accent-primary);">Moderador</span>
+              <span class="chat-message__model-tag">GPT-4.1</span>
+              <span class="chat-message__timestamp">10:48 AM</span>
+            </div>
+            <p><strong>✅ Fin de Ronda 1 — Resumen</strong></p>
+            <p>Hay acuerdo en: <strong>Strangler Fig</strong> como patrón de migración, <strong>ECS Fargate</strong> para las primeras fases, y una migración en <strong>3 fases</strong> de 18 meses.</p>
+            <p>Puntos en desacuerdo que requieren resolución en Ronda 2:</p>
+            <p>① <strong>Priorización de extracción:</strong> Security propone IAM primero; Reviewer y Architect proponen Catalog Service primero. Necesita resolución.<br/>② <strong>Estrategia JWT:</strong> Security quiere implementarlo en fase 1; Reviewer propone fase 3. Impacto en el frontend React debe evaluarse.<br/>③ <strong>Roadmap ECS→K8s:</strong> ¿Se incluye K8s como objetivo o solo ECS?</p>
+            <p><strong>🌀 Iniciando Ronda 2 — Nuevo orden: Architect → Security → Reviewer</strong><br/>Cada agente debe abordar específicamente los puntos en desacuerdo y proponer soluciones de cierre.</p>
+          </div>
+        </div>
+
+        <!-- === Agent A: Round 2 (typing) === -->
+        <div class="chat-typing">
+          <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+          <span style="font-size: var(--text-xs); color: var(--text-tertiary);">Architect está escribiendo...</span>
+          <div class="chat-typing__dots">
+            <div class="chat-typing__dot"></div>
+            <div class="chat-typing__dot"></div>
+            <div class="chat-typing__dot"></div>
+          </div>
+        </div>
+
+      </div><!-- /chat-log -->
+    </div><!-- /debate-main -->
+
+  </div><!-- /debate-layout -->
+
+  <!-- ── Pause Modal ── -->
+  <div class="modal-overlay" id="pause-modal">
+    <div class="modal">
+      <div class="modal__icon modal__icon--warning">⏸</div>
+      <div class="modal__title">¿Pausar el debate?</div>
+      <div class="modal__desc">
+        El debate se pausará después de que el agente actual termine su turno. 
+        Podrás reanudarlo en cualquier momento desde donde se detuvo.
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn-secondary" data-modal-close="pause-modal">Cancelar</button>
+        <button class="btn btn-primary" onclick="Modal.close('pause-modal'); Toast.show('Debate pausado — se detendrá al final del turno actual', 'warning');">
+          ⏸ Confirmar Pausa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Stop Modal ── -->
+  <div class="modal-overlay" id="stop-modal">
+    <div class="modal">
+      <div class="modal__icon modal__icon--danger">⏹</div>
+      <div class="modal__title">¿Detener el debate?</div>
+      <div class="modal__desc">
+        <strong>Esta acción no se puede deshacer.</strong> El debate se detendrá permanentemente 
+        y no podrás reanudarlo. Los mensajes y documentos parciales se conservarán para consulta, 
+        pero el proceso no continuará.
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn-secondary" data-modal-close="stop-modal">Cancelar</button>
+        <button class="btn btn-danger" onclick="Modal.close('stop-modal'); window.location.href='index.html';">
+          ⏹ Detener Definitivamente
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

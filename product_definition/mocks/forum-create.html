@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ágora — Crear Foro</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body class="app-wrapper">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="index.html" class="app-header__logo">
+        <div class="app-header__logo-icon">Ag</div>
+        <span class="app-header__logo-name">Ágora</span>
+      </a>
+      <div class="app-header__breadcrumb">
+        <span class="app-header__breadcrumb-sep">›</span>
+        <a href="index.html" style="color: var(--text-secondary); font-size: var(--text-sm);">Foros</a>
+        <span class="app-header__breadcrumb-sep">›</span>
+        <span class="app-header__breadcrumb-current">Nuevo Foro</span>
+      </div>
+    </div>
+    <div class="app-header__right">
+      <button class="icon-btn" data-lang-toggle title="Switch to English">EN</button>
+      <button class="icon-btn" data-theme-toggle title="Modo claro">☀️</button>
+    </div>
+  </header>
+
+  <!-- ── Page ── -->
+  <main class="page-content page-content--narrow">
+
+    <!-- Heading -->
+    <div class="section-heading mb-8">
+      <div class="section-heading__icon">✦</div>
+      <div>
+        <h1 class="section-heading__title">Crear Nuevo Foro</h1>
+        <p class="section-heading__subtitle">Configura los agentes y describe el problema a resolver</p>
+      </div>
+    </div>
+
+    <!-- ── Section 1: Agents count ── -->
+    <div class="card mb-6">
+      <div class="card-header" style="margin-bottom: var(--space-5);">
+        <div>
+          <div class="card-title">① Número de Agentes</div>
+          <div class="card-subtitle">Selecciona cuántos agentes de IA participarán en el debate</div>
+        </div>
+      </div>
+
+      <div class="count-selector">
+        <button class="count-btn" data-count="2">2</button>
+        <button class="count-btn selected" data-count="3">3</button>
+        <button class="count-btn" data-count="4">4</button>
+        <button class="count-btn" data-count="5">5</button>
+      </div>
+    </div>
+
+    <!-- ── Section 2: Agent configurations ── -->
+    <div class="card mb-6">
+      <div class="card-header" style="margin-bottom: var(--space-5);">
+        <div>
+          <div class="card-title">② Configuración de Agentes</div>
+          <div class="card-subtitle">Asigna nombre, color y modelo de IA a cada agente</div>
+        </div>
+      </div>
+
+      <div id="agents-container" style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <!-- Agent 1 -->
+        <div class="agent-config-card">
+          <div class="agent-config-card__header">
+            <div class="agent-avatar agent-avatar--lg" id="avatar-1" data-color="coral">A</div>
+            <div style="flex: 1;">
+              <div class="agent-config-card__number">Agente 1</div>
+              <div class="color-picker mt-2" data-target="avatar-1">
+                <div class="color-swatch selected" data-color="coral"></div>
+                <div class="color-swatch" data-color="sky"></div>
+                <div class="color-swatch" data-color="emerald"></div>
+                <div class="color-swatch" data-color="amber"></div>
+                <div class="color-swatch" data-color="violet"></div>
+                <div class="color-swatch" data-color="rose"></div>
+              </div>
+            </div>
+          </div>
+          <div class="agent-config-card__fields">
+            <div class="form-group">
+              <label class="form-label">Nombre del Agente</label>
+              <input type="text" class="form-input" placeholder="ej. Architect, Crítico..." value="Architect" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proveedor de IA</label>
+              <select class="form-select" onchange="updateModelSelect(this)">
+                <option value="">Seleccionar proveedor...</option>
+                <option value="copilot" selected>Copilot SDK</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="deepseek">DeepSeek</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">Modelo de IA</label>
+              <select class="form-select">
+                <optgroup label="Copilot SDK">
+                  <option value="gpt-4.1" selected>GPT-4.1 · Costo: 3x · Ctx: 128k/16k</option>
+                  <option value="gpt-4.1-mini">GPT-4.1-mini · Costo: 1x · Ctx: 128k/16k</option>
+                  <option value="gpt-4.1-nano">GPT-4.1-nano · Costo: 0.33x · Ctx: 128k/16k</option>
+                  <option value="o3">o3 · Costo: 3x · Razonamiento</option>
+                  <option value="o4-mini">o4-mini · Costo: 1x · Razonamiento</option>
+                  <option value="claude-sonnet">Claude Sonnet 4.5 · Costo: 3x · Ctx: 200k/16k</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent 2 -->
+        <div class="agent-config-card">
+          <div class="agent-config-card__header">
+            <div class="agent-avatar agent-avatar--lg" id="avatar-2" data-color="sky">B</div>
+            <div style="flex: 1;">
+              <div class="agent-config-card__number">Agente 2</div>
+              <div class="color-picker mt-2" data-target="avatar-2">
+                <div class="color-swatch" data-color="coral"></div>
+                <div class="color-swatch selected" data-color="sky"></div>
+                <div class="color-swatch" data-color="emerald"></div>
+                <div class="color-swatch" data-color="amber"></div>
+                <div class="color-swatch" data-color="violet"></div>
+                <div class="color-swatch" data-color="rose"></div>
+              </div>
+            </div>
+          </div>
+          <div class="agent-config-card__fields">
+            <div class="form-group">
+              <label class="form-label">Nombre del Agente</label>
+              <input type="text" class="form-input" placeholder="ej. Reviewer, Optimizador..." value="Reviewer" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proveedor de IA</label>
+              <select class="form-select">
+                <option value="">Seleccionar proveedor...</option>
+                <option value="copilot">Copilot SDK</option>
+                <option value="openrouter" selected>OpenRouter</option>
+                <option value="deepseek">DeepSeek</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">Modelo de IA</label>
+              <select class="form-select">
+                <optgroup label="OpenRouter">
+                  <option value="claude-opus">Claude Opus 4.5 · $15/$75 per 1M tokens · Ctx: 200k/32k</option>
+                  <option value="claude-sonnet-or" selected>Claude Sonnet 4.5 · $3/$15 · Ctx: 200k/16k</option>
+                  <option value="gemini-2-pro">Gemini 2.0 Pro · $1.25/$5 · Ctx: 1M/8k</option>
+                  <option value="gemini-2-flash">Gemini 2.0 Flash · $0.10/$0.40 · Ctx: 1M/8k</option>
+                  <option value="mistral-large">Mistral Large · $2/$6 · Ctx: 128k/4k</option>
+                  <option value="llama-3.3">Llama 3.3 70B · $0.23/$0.40 · Ctx: 128k/4k</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agent 3 -->
+        <div class="agent-config-card">
+          <div class="agent-config-card__header">
+            <div class="agent-avatar agent-avatar--lg" id="avatar-3" data-color="emerald">C</div>
+            <div style="flex: 1;">
+              <div class="agent-config-card__number">Agente 3</div>
+              <div class="color-picker mt-2" data-target="avatar-3">
+                <div class="color-swatch" data-color="coral"></div>
+                <div class="color-swatch" data-color="sky"></div>
+                <div class="color-swatch selected" data-color="emerald"></div>
+                <div class="color-swatch" data-color="amber"></div>
+                <div class="color-swatch" data-color="violet"></div>
+                <div class="color-swatch" data-color="rose"></div>
+              </div>
+            </div>
+          </div>
+          <div class="agent-config-card__fields">
+            <div class="form-group">
+              <label class="form-label">Nombre del Agente</label>
+              <input type="text" class="form-input" placeholder="ej. Security, QA, DevOps..." value="Security" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Proveedor de IA</label>
+              <select class="form-select">
+                <option value="">Seleccionar proveedor...</option>
+                <option value="copilot">Copilot SDK</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="deepseek" selected>DeepSeek</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">Modelo de IA</label>
+              <select class="form-select">
+                <optgroup label="DeepSeek">
+                  <option value="deepseek-v3" selected>DeepSeek-V3 · $0.27/$1.10 · Ctx: 64k/8k</option>
+                  <option value="deepseek-r1">DeepSeek-R1 · $0.55/$2.19 · Ctx: 64k/8k · Razonamiento</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div><!-- /agents-container -->
+    </div>
+
+    <!-- ── Section 3: Idea description ── -->
+    <div class="card mb-6">
+      <div class="card-header" style="margin-bottom: var(--space-5);">
+        <div>
+          <div class="card-title">
+            ③ Descripción del Problema
+            <span class="tooltip-trigger" style="margin-left: var(--space-2);">
+              ?
+              <div class="tooltip-box">
+                <strong>¿Qué incluir aquí?</strong><br/><br/>
+                • <strong>El problema</strong>: describe claramente qué quieres resolver o crear<br/>
+                • <strong>Contexto técnico</strong>: tecnologías, restricciones, entorno<br/>
+                • <strong>Objetivo final</strong>: qué resultado esperas obtener<br/>
+                • <strong>Requisitos</strong>: funcionales y no funcionales<br/><br/>
+                Cuanto más detallada sea la descripción, más precisos serán los resultados del debate.
+              </div>
+            </span>
+          </div>
+          <div class="card-subtitle">Explica la idea y el objetivo que quieres lograr con el debate</div>
+        </div>
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label">
+          Tu Idea y Problema
+          <span class="form-required">*</span>
+        </label>
+        <textarea class="form-textarea form-textarea--tall" id="idea-text"
+          placeholder="Describe el problema o idea que quieres debatir con los agentes...
+
+Ejemplo:
+Necesito diseñar la arquitectura de backend para una plataforma SaaS multitenant que gestione proyectos de construcción civil. Debe soportar múltiples clientes con datos completamente aislados, gestión de documentos pesados (planos, PDFs), y un módulo de presupuestación con cálculos complejos. Actualmente tenemos ~500 clientes y esperamos crecer a 5,000 en 2 años.">Quiero diseñar una arquitectura de microservicios para una plataforma de e-commerce B2B que maneje catálogos de productos con más de 500,000 SKUs, precios personalizados por cliente, y procesamiento de órdenes en tiempo real. El sistema debe ser altamente disponible (99.9% SLA) y manejar picos de hasta 50,000 pedidos por hora durante campañas especiales. Actualmente usamos una arquitectura monolítica en PHP/Laravel que está llegando a sus límites.</textarea>
+        <div class="flex items-center justify-between mt-2">
+          <div class="form-hint">El moderador analizará este texto antes de iniciar el debate</div>
+          <div class="form-counter" id="idea-counter">0 caracteres</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="form-group">
+        <label class="form-label">
+          Documentos a Generar
+          <span class="tooltip-trigger" style="margin-left: var(--space-2);">
+            ?
+            <div class="tooltip-box">
+              Lista los documentos que deseas que los agentes produzcan como resultado del debate.<br/><br/>
+              Ejemplos:<br/>
+              • Documento de Arquitectura (ADR)<br/>
+              • Diagrama C4 de componentes<br/>
+              • Plan de migración paso a paso<br/>
+              • Especificación de APIs<br/>
+              • Análisis de riesgos y mitigaciones
+            </div>
+          </span>
+        </label>
+        <textarea class="form-textarea" id="docs-text"
+          placeholder="Lista los documentos que deseas generar...">1. Documento de Arquitectura de Solución (HLD)
+2. Diagrama de componentes C4 (nivel 2 y 3)
+3. Plan de migración del monolito a microservicios
+4. Análisis de riesgos técnicos y estrategias de mitigación
+5. Estimación de costos de infraestructura en AWS</textarea>
+        <div class="form-hint mt-2">Cada documento será trabajado de forma colaborativa por todos los agentes</div>
+      </div>
+    </div>
+
+    <!-- Info box -->
+    <div class="info-box mb-6">
+      <span class="info-box__icon">ℹ️</span>
+      <div>
+        El moderador primero analizará tu descripción. Si necesita aclaraciones, te hará preguntas antes de iniciar el debate. Puede haber hasta 3 rondas de preguntas y respuestas.
+      </div>
+    </div>
+
+    <!-- ── Actions ── -->
+    <div class="flex items-center justify-between gap-4">
+      <a href="index.html" class="btn btn-ghost">
+        ← Cancelar
+      </a>
+      <button class="btn btn-primary btn-lg" data-modal-open="confirm-submit-modal">
+        ✦ Enviar y Comenzar
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ── Confirm Submit Modal ── -->
+  <div class="modal-overlay" id="confirm-submit-modal">
+    <div class="modal">
+      <div class="modal__icon modal__icon--primary">✦</div>
+      <div class="modal__title">¿Enviar el foro?</div>
+      <div class="modal__desc">
+        Una vez enviado, el moderador analizará tu descripción y el proceso comenzará. 
+        Asegúrate de haber revisado la configuración de los agentes y la descripción del problema.
+      </div>
+      <div style="background: var(--bg-elevated); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-6); font-size: var(--text-sm); color: var(--text-secondary);">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+          <div class="agent-avatar agent-avatar--sm" data-color="sky">B</div>
+          <div class="agent-avatar agent-avatar--sm" data-color="emerald">C</div>
+          <span><strong style="color: var(--text-primary);">3 agentes</strong> · Copilot SDK, OpenRouter, DeepSeek</span>
+        </div>
+        <div>5 documentos a generar</div>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn-secondary" data-modal-close="confirm-submit-modal">Revisar</button>
+        <a href="forum-qa.html" class="btn btn-primary">
+          ✦ Confirmar y Enviar
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/forum-create.js"></script>
+</body>
+</html>

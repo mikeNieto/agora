@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ágora — Documentos Generados</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <style>
+    body { overflow: hidden; }
+
+    .docs-layout {
+      display: flex;
+      height: calc(100vh - 60px);
+      overflow: hidden;
+    }
+
+    /* Left sidebar: doc list */
+    .docs-sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .docs-sidebar__header {
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .docs-sidebar__title {
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .docs-sidebar__subtitle {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .docs-sidebar__list {
+      padding: var(--space-3);
+      flex: 1;
+    }
+
+    .docs-sidebar__footer {
+      padding: var(--space-4);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* Center: document content */
+    .doc-viewer {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg-base);
+    }
+
+    .doc-viewer__header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: var(--space-4) var(--space-8);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .doc-viewer__title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .doc-viewer__meta {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .doc-viewer__content {
+      padding: var(--space-8) var(--space-10);
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    /* ── Inline comment thread ── */
+    .comment-section {
+      cursor: default;
+    }
+
+    .comment-section__badge {
+      cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast);
+      user-select: none;
+    }
+    .comment-section__badge:hover {
+      transform: scale(1.05);
+    }
+    .comment-section.thread-open {
+      background: rgba(251, 191, 36, .06);
+    }
+    .comment-section.thread-open .comment-section__badge {
+      background: rgba(251, 191, 36, .3);
+      border-color: rgba(251, 191, 36, .6);
+    }
+
+    /* Thread container (expands below section content) */
+    .comment-thread {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
+      opacity: 0;
+    }
+    .comment-thread.open {
+      max-height: 1200px;
+      opacity: 1;
+    }
+
+    .comment-thread__inner {
+      margin-top: var(--space-4);
+      border-top: 2px solid rgba(251, 191, 36, .3);
+      padding-top: var(--space-4);
+      padding-bottom: var(--space-2);
+    }
+
+    .comment-thread__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .comment-thread__title {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--accent-warning);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .comment-thread__close {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: .9rem;
+      padding: 4px 6px;
+      border-radius: var(--radius-sm);
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+    .comment-thread__close:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    /* Thread items with timeline connector */
+    .comment-thread__list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .thread-item {
+      display: flex;
+      gap: var(--space-3);
+      position: relative;
+    }
+
+    /* Vertical timeline line */
+    .thread-item:not(:last-child) .thread-item__line {
+      position: absolute;
+      left: 13px;
+      top: 32px;
+      bottom: -4px;
+      width: 2px;
+      background: var(--border-default);
+    }
+
+    .thread-item__left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      padding-top: 4px;
+    }
+
+    .thread-item__right {
+      flex: 1;
+      padding-bottom: var(--space-4);
+    }
+
+    .thread-item__bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
+      padding: var(--space-3) var(--space-4);
+      position: relative;
+      transition: border-color var(--transition-fast);
+    }
+    .thread-item__bubble:hover {
+      border-color: var(--border-default);
+    }
+
+    /* Moderator bubble variant */
+    .thread-item--moderator .thread-item__bubble {
+      background: rgba(124, 90, 243, .06);
+      border-color: rgba(124, 90, 243, .2);
+      border-radius: var(--radius-lg);
+    }
+
+    .thread-item__meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+
+    .thread-item__name {
+      font-size: var(--text-sm);
+      font-weight: 700;
+    }
+
+    .thread-item__round {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+    }
+
+    .thread-item__text {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Resolution badge */
+    .thread-resolved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent-success);
+      background: rgba(52, 211, 153, .12);
+      border: 1px solid rgba(52, 211, 153, .25);
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      margin-top: var(--space-2);
+    }
+
+    /* Right panel — "index" mode */
+    .comments-panel-wrap {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: width var(--transition-base);
+    }
+    .comments-panel-wrap.collapsed { width: 0; }
+
+    .comment-index-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: background var(--transition-fast);
+      text-decoration: none;
+    }
+    .comment-index-item:hover { background: var(--bg-elevated); }
+    .comment-index-item.active { background: rgba(251,191,36,.08); }
+
+    .comment-index-item__dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-warning);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    .comment-index-item__info { flex: 1; min-width: 0; }
+    .comment-index-item__section {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .comment-index-item__count {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-top: 1px;
+    }
+    .comment-index-item__avatars {
+      display: flex;
+      gap: -4px;
+    }
+    .comment-index-item__avatars .agent-avatar {
+      border: 2px solid var(--bg-surface);
+      margin-right: -6px;
+    }
+  </style>
+</head>
+<body class="app-wrapper">
+
+  <!-- ── Header ── -->
+  <header class="app-header">
+    <div class="app-header__left">
+      <a href="index.html" class="app-header__logo">
+        <div class="app-header__logo-icon">Ag</div>
+        <span class="app-header__logo-name">Ágora</span>
+      </a>
+      <div class="app-header__breadcrumb">
+        <span class="app-header__breadcrumb-sep">›</span>
+        <a href="index.html" style="color: var(--text-secondary); font-size: var(--text-sm);">Foros</a>
+        <span class="app-header__breadcrumb-sep">›</span>
+        <span class="app-header__breadcrumb-current">Caché Distribuida · Documentos</span>
+      </div>
+    </div>
+    <div class="app-header__right">
+      <span class="badge badge--done" style="margin-right: var(--space-2);">✓ Completado</span>
+      <button class="icon-btn" data-lang-toggle title="Switch to English">EN</button>
+      <button class="icon-btn" data-theme-toggle title="Modo claro">☀️</button>
+    </div>
+  </header>
+
+  <!-- ── Layout ── -->
+  <div class="docs-layout">
+
+    <!-- ── Left Sidebar: Documents ── -->
+    <aside class="docs-sidebar">
+      <div class="docs-sidebar__header">
+        <div class="docs-sidebar__title">Documentos Generados</div>
+        <div class="docs-sidebar__subtitle">5 documentos · Debate completado</div>
+      </div>
+      <div class="docs-sidebar__list">
+        <div class="doc-item active" onclick="switchDoc('hld')">
+          <div class="doc-item__icon">📄</div>
+          <div class="doc-item__info">
+            <div class="doc-item__name">HLD Architecture</div>
+            <div class="doc-item__meta">4 rondas · 3 comentarios</div>
+          </div>
+        </div>
+        <div class="doc-item" onclick="switchDoc('c4')">
+          <div class="doc-item__icon">📊</div>
+          <div class="doc-item__info">
+            <div class="doc-item__name">Diagrama C4</div>
+            <div class="doc-item__meta">3 rondas · 1 comentario</div>
+          </div>
+        </div>
+        <div class="doc-item" onclick="switchDoc('migration')">
+          <div class="doc-item__icon">🗺️</div>
+          <div class="doc-item__info">
+            <div class="doc-item__name">Plan de Migración</div>
+            <div class="doc-item__meta">5 rondas · 5 comentarios</div>
+          </div>
+        </div>
+        <div class="doc-item" onclick="switchDoc('risks')">
+          <div class="doc-item__icon">⚠️</div>
+          <div class="doc-item__info">
+            <div class="doc-item__name">Análisis de Riesgos</div>
+            <div class="doc-item__meta">2 rondas · 2 comentarios</div>
+          </div>
+        </div>
+        <div class="doc-item" onclick="switchDoc('costs')">
+          <div class="doc-item__icon">💰</div>
+          <div class="doc-item__info">
+            <div class="doc-item__name">Costos AWS</div>
+            <div class="doc-item__meta">3 rondas · 4 comentarios</div>
+          </div>
+        </div>
+      </div>
+      <div class="docs-sidebar__footer">
+        <button class="btn btn-primary w-full" onclick="Toast.show('Preparando ZIP con 5 documentos...', 'info'); setTimeout(() => Toast.show('ZIP descargado: agora-ecommerce-docs.zip', \'success\'), 2000)">
+          📦 Exportar ZIP
+        </button>
+        <div style="font-size: 10px; color: var(--text-tertiary); text-align: center; margin-top: var(--space-2);">
+          Versiones finales sin comentarios
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Center: Document viewer ── -->
+    <div class="doc-viewer">
+      <div class="doc-viewer__header">
+        <div>
+          <div class="doc-viewer__title" id="doc-title">HLD — Arquitectura de Solución</div>
+          <div class="doc-viewer__meta">Última modificación por <strong>Reviewer</strong> · Ronda 4 · Aprobado por el moderador</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="badge badge--done">✓ Cerrado</span>
+          <button class="btn btn-secondary btn-sm" onclick="toggleComments()">
+            💬 Comentarios (3)
+          </button>
+        </div>
+      </div>
+
+      <div class="doc-viewer__content">
+        <div class="markdown-viewer" id="doc-content">
+
+          <h1>Documento de Arquitectura de Alto Nivel (HLD)</h1>
+          <h2>Plataforma E-commerce B2B — Migración a Microservicios</h2>
+
+          <hr/>
+
+          <h2>1. Resumen Ejecutivo</h2>
+          <p>
+            Este documento describe la arquitectura de microservicios propuesta para migrar la plataforma 
+            e-commerce B2B monolítica (PHP/Laravel) a un sistema distribuido de alta disponibilidad. 
+            La migración se realizará en tres fases durante un período de 18 meses, utilizando el 
+            patrón <strong>Strangler Fig</strong> para garantizar continuidad del negocio.
+          </p>
+
+          <h2>2. Objetivos y Restricciones</h2>
+
+          <h3>2.1 Objetivos</h3>
+          <ul>
+            <li>SLA del <strong>99.9%</strong> (máximo 8.7 horas de downtime anual)</li>
+            <li>Soportar <strong>50,000 pedidos/hora</strong> en picos de campaña</li>
+            <li>Gestionar <strong>500,000+ SKUs</strong> con precios por cliente</li>
+            <li>Reducir el tiempo de despliegue de 2 horas a menos de 15 minutos</li>
+          </ul>
+
+          <h3>2.2 Restricciones</h3>
+          <ul>
+            <li><strong>Presupuesto:</strong> $2,000–$10,000/mes en AWS</li>
+            <li><strong>Equipo:</strong> Sin especialistas K8s — uso de servicios gestionados</li>
+            <li><strong>Stack existente:</strong> PHP/Laravel en backend, React en frontend</li>
+            <li><strong>Plazo:</strong> 18 meses para migración completa</li>
+          </ul>
+
+          <!-- ── Comment section: Arquitectura Propuesta ── -->
+          <div class="comment-section" id="section-arch" data-section="arch">
+            <h2>3. Arquitectura Propuesta</h2>
+            <div class="comment-section__badge" onclick="toggleThread('arch')">💬 2 comentarios</div>
+
+            <h3>3.1 Capa de Infraestructura</h3>
+            <p>
+              La arquitectura base utiliza <strong>AWS ECS Fargate</strong> como plataforma de contenedores, 
+              eliminando la gestión de servidores y simplificando las operaciones para el equipo actual. 
+              Un <strong>AWS API Gateway</strong> centraliza el enrutamiento y actúa como proxy hacia el 
+              monolito durante las fases de transición.
+            </p>
+
+            <h3>3.2 Fases de Migración</h3>
+
+            <p><strong>Fase 1 — Infraestructura Base (Meses 1–4)</strong></p>
+            <ul>
+              <li>Desplegar API Gateway + ECS Fargate</li>
+              <li>Extraer <strong>Catalog Service</strong> (500k SKUs, ElastiCache para precios)</li>
+              <li>Extraer <strong>Pricing Service</strong> (lógica de precios por cliente)</li>
+              <li>Monolito continúa manejando pedidos, usuarios y sesiones</li>
+            </ul>
+
+            <p><strong>Fase 2 — Core Business (Meses 5–8)</strong></p>
+            <ul>
+              <li>Extraer <strong>Order Processing Service</strong> con cola SQS</li>
+              <li>Extraer <strong>Inventory Service</strong></li>
+              <li>Extraer <strong>Customer Service</strong> con JWT básico</li>
+              <li>Implementar <strong>Event Sourcing</strong> para pedidos</li>
+            </ul>
+
+            <p><strong>Fase 3 — Consolidación (Meses 9–18)</strong></p>
+            <ul>
+              <li>Migrar <strong>IAM completo</strong> con OAuth 2.0</li>
+              <li>Descomisionar el monolito progresivamente</li>
+              <li>Implementar observabilidad completa (Datadog/CloudWatch)</li>
+              <li>Evaluar migración a EKS para equipos que hayan madurado</li>
+            </ul>
+
+            <!-- Inline thread -->
+            <div class="comment-thread" id="thread-arch">
+              <div class="comment-thread__inner">
+                <div class="comment-thread__header">
+                  <span class="comment-thread__title">
+                    💬 Sección 3 — Comentarios de Agentes
+                  </span>
+                  <button class="comment-thread__close" onclick="toggleThread('arch')">✕ Cerrar</button>
+                </div>
+                <div class="comment-thread__list">
+
+                  <!-- Item 1: Reviewer -->
+                  <div class="thread-item">
+                    <div class="thread-item__line"></div>
+                    <div class="thread-item__left">
+                      <div class="agent-avatar agent-avatar--sm" data-color="sky">B</div>
+                    </div>
+                    <div class="thread-item__right">
+                      <div class="thread-item__bubble">
+                        <div class="thread-item__meta">
+                          <span class="thread-item__name" style="color: var(--agent-sky);">Reviewer</span>
+                          <span class="thread-item__round">Ronda 3</span>
+                          <span style="font-size:10px; color:var(--text-tertiary); margin-left:auto;">Claude Sonnet 4.5</span>
+                        </div>
+                        <div class="thread-item__text">
+                          Propongo añadir un <strong>Circuit Breaker pattern</strong> (Hystrix/Resilience4j) entre el API Gateway y los microservicios. Si el Catalog Service falla, el sistema debería degradarse <em>gracefully</em> mostrando el catálogo cacheado en lugar de un error 500.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Item 2: Security -->
+                  <div class="thread-item">
+                    <div class="thread-item__line"></div>
+                    <div class="thread-item__left">
+                      <div class="agent-avatar agent-avatar--sm" data-color="emerald">C</div>
+                    </div>
+                    <div class="thread-item__right">
+                      <div class="thread-item__bubble">
+                        <div class="thread-item__meta">
+                          <span class="thread-item__name" style="color: var(--agent-emerald);">Security</span>
+                          <span class="thread-item__round">Ronda 3</span>
+                          <span style="font-size:10px; color:var(--text-tertiary); margin-left:auto;">DeepSeek-V3</span>
+                        </div>
+                        <div class="thread-item__text">
+                          Acuerdo con Reviewer sobre Circuit Breaker. La Sección 3.1 debe mencionar explícitamente que el API Gateway debe <strong>validar tokens JWT antes de enrutar</strong> a los servicios de Fase 2+. Sin esto, un servicio comprometido podría acceder a otros servicios internamente sin autenticación.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Item 3: Architect (incorporated) -->
+                  <div class="thread-item">
+                    <div class="thread-item__line"></div>
+                    <div class="thread-item__left">
+                      <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+                    </div>
+                    <div class="thread-item__right">
+                      <div class="thread-item__bubble">
+                        <div class="thread-item__meta">
+                          <span class="thread-item__name" style="color: var(--agent-coral);">Architect</span>
+                          <span class="thread-item__round">Ronda 4</span>
+                          <span style="font-size:10px; color:var(--text-tertiary); margin-left:auto;">GPT-4.1</span>
+                        </div>
+                        <div class="thread-item__text">
+                          He incorporado Circuit Breaker en el diagrama de Sección 5 y añadido la validación JWT en el API Gateway para Fase 2+. Los cambios están reflejados en Sección 4 — Decisiones Técnicas.
+                        </div>
+                        <span class="thread-resolved-badge">✓ Incorporado en Ronda 4</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Moderator close -->
+                  <div class="thread-item thread-item--moderator">
+                    <div class="thread-item__left">
+                      <div class="agent-avatar agent-avatar--sm" style="background: linear-gradient(135deg,var(--accent-primary),var(--accent-secondary)); color:white;">M</div>
+                    </div>
+                    <div class="thread-item__right">
+                      <div class="thread-item__bubble">
+                        <div class="thread-item__meta">
+                          <span class="thread-item__name" style="color: var(--accent-primary);">Moderador</span>
+                          <span class="thread-item__round">Ronda 4</span>
+                        </div>
+                        <div class="thread-item__text">
+                          ✅ <strong>Thread resuelto.</strong> Circuit Breaker y validación JWT incorporados. Sección 3 aprobada por los 3 agentes.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div><!-- /thread-list -->
+              </div>
+            </div><!-- /thread -->
+          </div>
+
+          <!-- ── Comment section: Decisiones Técnicas ── -->
+          <div class="comment-section" id="section-tech" data-section="tech">
+            <h2>4. Decisiones Técnicas Clave</h2>
+            <div class="comment-section__badge" onclick="toggleThread('tech')">💬 1 comentario</div>
+
+            <p>Las decisiones fundamentales adoptadas por consenso entre los agentes:</p>
+
+            <ul>
+              <li><strong>ECS Fargate sobre EKS:</strong> Menor overhead operacional para el equipo actual. K8s se incluye como hoja de ruta a largo plazo.</li>
+              <li><strong>Strangler Fig:</strong> Migración gradual sin big bang, permitiendo validar cada servicio antes de continuar.</li>
+              <li><strong>JWT en Fase 2 (no Fase 1):</strong> Evita refactoring del frontend React en las primeras etapas críticas. Las sesiones PHP se mantienen durante Fase 1.</li>
+              <li><strong>SQS para Order Processing:</strong> Garantiza durabilidad de pedidos y permite escalar workers independientemente.</li>
+              <li><strong>ElastiCache para Catalog:</strong> Reducción de latencia en consultas de precios de ~200ms a &lt;5ms.</li>
+            </ul>
+
+            <!-- Inline thread -->
+            <div class="comment-thread" id="thread-tech">
+              <div class="comment-thread__inner">
+                <div class="comment-thread__header">
+                  <span class="comment-thread__title">
+                    💬 Sección 4 — Comentarios de Agentes
+                  </span>
+                  <button class="comment-thread__close" onclick="toggleThread('tech')">✕ Cerrar</button>
+                </div>
+                <div class="comment-thread__list">
+
+                  <!-- Item: Architect -->
+                  <div class="thread-item">
+                    <div class="thread-item__line"></div>
+                    <div class="thread-item__left">
+                      <div class="agent-avatar agent-avatar--sm" data-color="coral">A</div>
+                    </div>
+                    <div class="thread-item__right">
+                      <div class="thread-item__bubble">
+                        <div class="thread-item__meta">
+                          <span class="thread-item__name" style="color: var(--agent-coral);">Architect</span>
+                          <span class="thread-item__round">Ronda 4</span>
+                          <span style="font-size:10px; color:var(--text-tertiary); margin-left:auto;">GPT-4.1</span>
+                        </div>
+                        <div class="thread-item__text">
+                          Propongo añadir una entrada sobre <strong>observabilidad</strong>: la decisión de usar CloudWatch como capa principal con dashboards en Grafana para no depender de herramientas de pago en Fase 1. Datadog se puede incorporar en Fase 3.
+                        </div>
+                        <span class="thread-resolved-badge">✓ Incorporado en Ronda 4</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Moderator close -->
+                  <div class="thread-item thread-item--moderator">
+                    <div class="thread-item__left">
+                      <div class="agent-avatar agent-avatar--sm" style="background: linear-gradient(135deg,var(--accent-primary),var(--accent-secondary)); color:white;">M</div>
+                    </div>
+                    <div class="thread-item__right">
+                      <div class="thread-item__bubble">
+                        <div class="thread-item__meta">
+                          <span class="thread-item__name" style="color: var(--accent-primary);">Moderador</span>
+                          <span class="thread-item__round">Ronda 4</span>
+                        </div>
+                        <div class="thread-item__text">
+                          ✅ <strong>Thread resuelto.</strong> Decisión de observabilidad documentada. Sección 4 aprobada.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div><!-- /thread -->
+          </div>
+
+          <h2>5. Diagrama de Componentes (Estado Final)</h2>
+          <pre>
+┌─────────────────────────────────────────────────────────┐
+│                    AWS API Gateway                       │
+│                 (Rate limiting, Auth)                    │
+└──────┬──────────┬──────────┬──────────┬─────────────────┘
+       │          │          │          │
+   Catalog    Pricing    Orders    Customer
+   Service    Service    Service   Service
+  (ECS+      (ECS+      (ECS+     (ECS+
+  Cache)     Cache)     SQS)      JWT)
+       │          │          │          │
+       └──────────┴──────────┴──────────┘
+                         │
+                   [Monolito PHP]
+              (Fase 1: Sesiones, Admin)
+                         │
+                    [MySQL RDS]
+          </pre>
+
+          <h2>6. Estimación de Recursos</h2>
+          <p>
+            Ver documento <em>Costos AWS</em> para el desglose completo por fase. 
+            El presupuesto inicial (Fase 1) se estima en <strong>$3,200/mes</strong>, 
+            dentro del rango definido de $2,000–$10,000.
+          </p>
+
+        </div><!-- /markdown-viewer -->
+      </div><!-- /doc-viewer__content -->
+    </div><!-- /doc-viewer -->
+
+    <!-- ── Right: Comments Index Panel ── -->
+    <div class="comments-panel-wrap" id="comments-panel">
+      <div class="comment-panel__header">
+        <span class="comment-panel__title">💬 Índice de Comentarios</span>
+        <button onclick="toggleComments()" style="background: none; border: none; cursor: pointer; color: var(--text-tertiary); font-size: 1rem; padding: 4px 6px; border-radius: 4px;">✕</button>
+      </div>
+
+      <!-- Summary -->
+      <div style="padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated);">
+        <div style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5;">
+          <strong style="color: var(--text-primary);">3 comentarios totales</strong> en 2 secciones · todos resueltos
+        </div>
+        <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2);">
+          <div style="flex: 1; height: 4px; background: var(--bg-card); border-radius: 2px; overflow: hidden;">
+            <div style="width: 100%; height: 100%; background: var(--accent-success); border-radius: 2px;"></div>
+          </div>
+          <span style="font-size: 10px; color: var(--accent-success); font-weight: 700;">100% resuelto</span>
+        </div>
+      </div>
+
+      <div style="padding: var(--space-3); flex: 1; overflow-y: auto;">
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-tertiary); padding: var(--space-2) var(--space-2) var(--space-3);">
+          Secciones con comentarios
+        </div>
+
+        <!-- Section 3 -->
+        <div class="comment-index-item" id="index-arch" onclick="toggleThread('arch'); highlightIndex('arch')">
+          <div class="comment-index-item__dot"></div>
+          <div class="comment-index-item__info">
+            <div class="comment-index-item__section">§3 Arquitectura Propuesta</div>
+            <div class="comment-index-item__count">2 comentarios · Ronda 3–4</div>
+            <div class="comment-index-item__avatars" style="margin-top: var(--space-1);">
+              <div class="agent-avatar agent-avatar--sm" data-color="sky" style="font-size:.6rem; width:20px; height:20px; border-width:1.5px;">B</div>
+              <div class="agent-avatar agent-avatar--sm" data-color="emerald" style="font-size:.6rem; width:20px; height:20px; border-width:1.5px;">C</div>
+              <div class="agent-avatar agent-avatar--sm" data-color="coral" style="font-size:.6rem; width:20px; height:20px; border-width:1.5px;">A</div>
+            </div>
+          </div>
+          <span style="font-size: 10px; color: var(--accent-success); font-weight: 700; flex-shrink:0;">✓</span>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="comment-index-item" id="index-tech" onclick="toggleThread('tech'); highlightIndex('tech')">
+          <div class="comment-index-item__dot"></div>
+          <div class="comment-index-item__info">
+            <div class="comment-index-item__section">§4 Decisiones Técnicas</div>
+            <div class="comment-index-item__count">1 comentario · Ronda 4</div>
+            <div class="comment-index-item__avatars" style="margin-top: var(--space-1);">
+              <div class="agent-avatar agent-avatar--sm" data-color="coral" style="font-size:.6rem; width:20px; height:20px; border-width:1.5px;">A</div>
+            </div>
+          </div>
+          <span style="font-size: 10px; color: var(--accent-success); font-weight: 700; flex-shrink:0;">✓</span>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border-subtle); margin: var(--space-3) 0;" />
+
+        <!-- Agents legend -->
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-tertiary); padding: var(--space-1) var(--space-2) var(--space-2);">
+          Agentes
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-2);">
+          <div style="display: flex; align-items: center; gap: var(--space-2);">
+            <div class="agent-avatar agent-avatar--sm" data-color="coral" style="font-size:.65rem; width:22px; height:22px;">A</div>
+            <div>
+              <div style="font-size: var(--text-xs); font-weight: 600; color: var(--text-primary);">Architect</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">GPT-4.1 · Copilot</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2);">
+            <div class="agent-avatar agent-avatar--sm" data-color="sky" style="font-size:.65rem; width:22px; height:22px;">B</div>
+            <div>
+              <div style="font-size: var(--text-xs); font-weight: 600; color: var(--text-primary);">Reviewer</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">Claude Sonnet 4.5 · OR</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: var(--space-2);">
+            <div class="agent-avatar agent-avatar--sm" data-color="emerald" style="font-size:.65rem; width:22px; height:22px;">C</div>
+            <div>
+              <div style="font-size: var(--text-xs); font-weight: 600; color: var(--text-primary);">Security</div>
+              <div style="font-size: 10px; color: var(--text-tertiary);">DeepSeek-V3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /comments-panel -->
+
+  </div><!-- /docs-layout -->
+
+  <!-- ── Toast container ── -->
+  <div class="toast-container"></div>
+
+  <script src="js/app.js"></script>
+  <script>
+    let commentsOpen = true;
+
+    function toggleComments() {
+      const panel = document.getElementById('comments-panel');
+      commentsOpen = !commentsOpen;
+      panel.classList.toggle('collapsed', !commentsOpen);
+    }
+
+    // Track which threads are open
+    const openThreads = {};
+
+    function toggleThread(sectionId) {
+      const thread  = document.getElementById(`thread-${sectionId}`);
+      const section = document.getElementById(`section-${sectionId}`);
+      const isOpen  = openThreads[sectionId];
+
+      if (isOpen) {
+        // Close
+        thread.classList.remove('open');
+        section.classList.remove('thread-open');
+        openThreads[sectionId] = false;
+        document.getElementById(`index-${sectionId}`)?.classList.remove('active');
+      } else {
+        // Open
+        thread.classList.add('open');
+        section.classList.add('thread-open');
+        openThreads[sectionId] = true;
+        document.getElementById(`index-${sectionId}`)?.classList.add('active');
+        // Smooth scroll to thread after it opens
+        setTimeout(() => {
+          thread.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    }
+
+    function highlightIndex(sectionId) {
+      // Scroll section into view from index click
+      const section = document.getElementById(`section-${sectionId}`);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function switchDoc(id) {
+      document.querySelectorAll('.doc-item').forEach(item => item.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      const titles = {
+        hld:       'HLD — Arquitectura de Solución',
+        c4:        'Diagrama C4 — Componentes',
+        migration: 'Plan de Migración',
+        risks:     'Análisis de Riesgos',
+        costs:     'Estimación de Costos AWS'
+      };
+      const titleEl = document.getElementById('doc-title');
+      if (titleEl && titles[id]) titleEl.textContent = titles[id];
+      Toast.show(`Cargando: ${titles[id]}`, 'info', 1500);
+    }
+  </script>
+</body>
+</html>

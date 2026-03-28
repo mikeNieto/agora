@@ -1,0 +1,21 @@
+services:
+  agora:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7575:7575"
+    environment:
+      NODE_ENV: production
+      PORT: "7575"
+      HOME: /app/data/copilot
+      XDG_RUNTIME_DIR: /app/data/copilot/.runtime
+      DBUS_SESSION_BUS_ADDRESS: unix:path=/app/data/copilot/.runtime/bus
+      COPILOT_CLI_PATH: /usr/local/bin/copilot
+      AGORA_STORAGE_DIR: /app/data/.agora
+    volumes:
+      - agora-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  agora-data:
