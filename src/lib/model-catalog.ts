@@ -193,20 +193,46 @@ function resolveCopilotCliPath(): string | undefined {
   }
 
   const homeDir = os.homedir();
-  const candidates = [
-    path.join(
-      homeDir,
-      "Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/copilot",
-    ),
-    path.join(
-      homeDir,
-      "Library/Application Support/Code - Insiders/User/globalStorage/github.copilot-chat/copilotCli/copilot",
-    ),
-    path.join(
-      homeDir,
-      ".vscode/extensions/github.copilot-chat/copilotCli/copilot",
-    ),
-  ];
+  const platform = os.platform();
+
+  // Platform-specific candidate paths
+  const candidates: string[] = [];
+
+  if (platform === "darwin") {
+    // macOS paths
+    candidates.push(
+      path.join(
+        homeDir,
+        "Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/copilot",
+      ),
+      path.join(
+        homeDir,
+        "Library/Application Support/Code - Insiders/User/globalStorage/github.copilot-chat/copilotCli/copilot",
+      ),
+      path.join(
+        homeDir,
+        ".vscode/extensions/github.copilot-chat/copilotCli/copilot",
+      ),
+    );
+  } else if (platform === "linux") {
+    // Linux paths
+    candidates.push(
+      path.join(
+        homeDir,
+        ".config/Code/User/globalStorage/github.copilot-chat/copilotCli/copilot",
+      ),
+      path.join(
+        homeDir,
+        ".config/Code - Insiders/User/globalStorage/github.copilot-chat/copilotCli/copilot",
+      ),
+      path.join(
+        homeDir,
+        ".vscode/extensions/github.copilot-chat/copilotCli/copilot",
+      ),
+      "/usr/local/bin/copilot",
+      "/usr/bin/copilot",
+    );
+  }
 
   for (const candidate of candidates) {
     if (existsSync(candidate)) {
@@ -214,8 +240,12 @@ function resolveCopilotCliPath(): string | undefined {
     }
   }
 
+  // Try to find in PATH using the appropriate shell
+  const shell = platform === "darwin" ? "/bin/zsh" : "/bin/bash";
+  const shellFlag = platform === "darwin" ? "-lc" : "-c";
+
   try {
-    const resolved = execFileSync("/bin/zsh", ["-lc", "command -v copilot"], {
+    const resolved = execFileSync(shell, [shellFlag, "command -v copilot"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
@@ -224,7 +254,24 @@ function resolveCopilotCliPath(): string | undefined {
       return resolved;
     }
   } catch {
-    return undefined;
+    // Fallback: try with bash on macOS or sh on Linux
+    try {
+      const fallbackShell = platform === "darwin" ? "/bin/bash" : "/bin/sh";
+      const resolved = execFileSync(
+        fallbackShell,
+        ["-c", "command -v copilot"],
+        {
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "ignore"],
+        },
+      ).trim();
+
+      if (resolved && existsSync(resolved)) {
+        return resolved;
+      }
+    } catch {
+      return undefined;
+    }
   }
 
   return undefined;
