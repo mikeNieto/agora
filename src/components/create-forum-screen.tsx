@@ -107,14 +107,6 @@ export function CreateForumScreen({
     [draft.moderator, safeModelCatalogs],
   );
 
-  const showOpenRouterSort = activeAgents.some(
-    (agent) => agent.provider === "openrouter",
-  );
-  const showModeratorOpenRouterSort =
-    draft.moderator.provider === "openrouter";
-  const shouldShowOpenRouterSort =
-    showOpenRouterSort || showModeratorOpenRouterSort;
-
   function updateAgent(index: number, next: Partial<AgentDefinition>) {
     setDraft((current) => ({
       ...current,
@@ -153,14 +145,12 @@ export function CreateForumScreen({
         },
         body: JSON.stringify(draft),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            forum?: {
-              id: string;
-            };
-            error?: string;
-          }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        forum?: {
+          id: string;
+        };
+        error?: string;
+      } | null;
 
       if (!response.ok || !payload?.forum?.id) {
         throw new Error(payload?.error ?? "Unable to create forum.");
@@ -222,27 +212,6 @@ export function CreateForumScreen({
                   <p className="panel-kicker">02</p>
                   <h2 className="section-title">{copy.moderatorLabel}</h2>
                 </div>
-                {shouldShowOpenRouterSort ? (
-                  <label className="field min-w-64">
-                    <span>{copy.openRouterSortLabel}</span>
-                    <select
-                      value={openRouterSort}
-                      onChange={(event) =>
-                        setOpenRouterSort(
-                          event.target.value as OpenRouterSortMode,
-                        )
-                      }
-                    >
-                      {Object.entries(copy.openRouterSort).map(
-                        ([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </label>
-                ) : null}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
@@ -273,6 +242,31 @@ export function CreateForumScreen({
 
                 <label className="field">
                   <span>{copy.modelLabel}</span>
+                  {draft.moderator.provider === "openrouter" &&
+                  moderatorModels.length > 0 ? (
+                    <div
+                      className="field-filter-row"
+                      style={{ marginBottom: "0.5rem" }}
+                    >
+                      <span>{copy.openRouterSortLabel}</span>
+                      <select
+                        value={openRouterSort}
+                        onChange={(event) =>
+                          setOpenRouterSort(
+                            event.target.value as OpenRouterSortMode,
+                          )
+                        }
+                      >
+                        {Object.entries(copy.openRouterSort).map(
+                          ([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </div>
+                  ) : null}
                   <select
                     value={draft.moderator.modelId}
                     disabled={moderatorModels.length === 0}
@@ -296,8 +290,8 @@ export function CreateForumScreen({
                     {copy.moderatorHint} {copy.summaryCompactionLabel}:{" "}
                     {describeModeratorCompactionMode(
                       moderatorPolicy.compactionMode,
-                    )} @{" "}
-                    {Math.round(MODERATOR_CONTEXT_WARNING_RATIO * 100)}%.
+                    )}{" "}
+                    @ {Math.round(MODERATOR_CONTEXT_WARNING_RATIO * 100)}%.
                   </small>
                   {safeModelCatalogs[draft.moderator.provider].error ? (
                     <small>
@@ -410,6 +404,28 @@ export function CreateForumScreen({
 
                         <label className="field md:col-span-2">
                           <span>{copy.modelLabel}</span>
+                          {agent.provider === "openrouter" &&
+                          availableModels.length > 0 ? (
+                            <div className="field-filter-row">
+                              <span>{copy.openRouterSortLabel}</span>
+                              <select
+                                value={openRouterSort}
+                                onChange={(event) =>
+                                  setOpenRouterSort(
+                                    event.target.value as OpenRouterSortMode,
+                                  )
+                                }
+                              >
+                                {Object.entries(copy.openRouterSort).map(
+                                  ([value, label]) => (
+                                    <option key={value} value={value}>
+                                      {label}
+                                    </option>
+                                  ),
+                                )}
+                              </select>
+                            </div>
+                          ) : null}
                           <select
                             value={agent.modelId}
                             disabled={availableModels.length === 0}
@@ -535,14 +551,12 @@ export function CreateForumScreen({
                   <dt>{copy.summaryProvidersLabel}</dt>
                   <dd>
                     {Array.from(
-                      new Set(
-                        [
-                          copy.providerGroup[draft.moderator.provider],
-                          ...activeAgents.map(
-                            (agent) => copy.providerGroup[agent.provider],
-                          ),
-                        ],
-                      ),
+                      new Set([
+                        copy.providerGroup[draft.moderator.provider],
+                        ...activeAgents.map(
+                          (agent) => copy.providerGroup[agent.provider],
+                        ),
+                      ]),
                     ).join(", ")}
                   </dd>
                 </div>
@@ -597,7 +611,9 @@ export function CreateForumScreen({
       </section>
 
       {submitError ? (
-        <div className="settings-alert settings-alert--error">{submitError}</div>
+        <div className="settings-alert settings-alert--error">
+          {submitError}
+        </div>
       ) : null}
 
       {confirmOpen ? (
@@ -741,7 +757,8 @@ function getModelLabel(
   modelCatalogs: ProviderCatalogMap,
 ) {
   return (
-    (modelCatalogs[provider].models.find((model) => model.id === modelId)?.label ??
+    (modelCatalogs[provider].models.find((model) => model.id === modelId)
+      ?.label ??
       modelId) ||
     "n/a"
   );
