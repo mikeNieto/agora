@@ -163,7 +163,7 @@ export async function getCopilotConnectionStatus(
   }
 }
 
-function createCopilotClient(providerSecrets: ProviderSecrets = {}) {
+export function createCopilotClient(providerSecrets: ProviderSecrets = {}) {
   const hasStoredToken = Boolean(providerSecrets.githubToken);
   const cliPath = resolveCopilotCliPath();
 

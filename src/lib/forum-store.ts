@@ -1,11 +1,10 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type {
   ClarificationAnswer,
-  ClarificationQuestion,
   CreateForumDraft,
   ForumActivityEntry,
   ForumActivityKind,
@@ -13,6 +12,16 @@ import type {
   ForumStatus,
   ForumSummary,
 } from "@/lib/domain";
+import {
+  ensureDebateRun,
+  resumeDebateOrchestration,
+  startDebateOrchestration,
+} from "@/lib/debate-service";
+import {
+  analyzeInitialForum,
+  reviewClarificationAnswers,
+} from "@/lib/moderator-service";
+import type { ProviderSecrets } from "@/lib/provider-settings";
 
 const STORAGE_DIR = process.env.AGORA_STORAGE_DIR?.trim()
   ? path.resolve(process.env.AGORA_STORAGE_DIR)
@@ -26,6 +35,7 @@ type ForumAction =
     }
   | { type: "start-debate" }
   | { type: "pause-debate" }
+  | { type: "stop-debate" }
   | { type: "resume-debate" }
   | { type: "complete-forum" };
 
@@ -69,11 +79,27 @@ export async function getForumById(id: string): Promise<ForumRecord | null> {
   }
 }
 
-export async function createForum(draft: CreateForumDraft): Promise<ForumRecord> {
+export async function deleteForumById(id: string): Promise<void> {
+  const forum = await getForumById(id);
+
+  if (!forum) {
+    throw new Error("Forum not found.");
+  }
+
+  await rm(getForumDir(id), { recursive: true, force: false });
+}
+
+export async function createForum(
+  draft: CreateForumDraft,
+  providerSecrets: ProviderSecrets,
+): Promise<ForumRecord> {
   const normalizedDraft = normalizeDraft(draft);
   const id = buildForumId(normalizedDraft.title);
   const createdAt = new Date().toISOString();
-  const initialAnalysis = buildInitialWorkflow(normalizedDraft);
+  const initialAnalysis = await analyzeInitialForum(
+    normalizedDraft,
+    providerSecrets,
+  );
   const activity: ForumActivityEntry[] = [
     buildActivityEntry(
       "created",
@@ -86,7 +112,7 @@ export async function createForum(draft: CreateForumDraft): Promise<ForumRecord>
     activity.push(
       buildActivityEntry(
         "clarification-requested",
-        `Clarification round 1 opened with ${initialAnalysis.questions.length} moderator questions.`,
+        `Clarification round 1 opened with ${initialAnalysis.questions.length} moderator-generated questions.`,
         createdAt,
       ),
     );
@@ -94,7 +120,7 @@ export async function createForum(draft: CreateForumDraft): Promise<ForumRecord>
     activity.push(
       buildActivityEntry(
         "review-ready",
-        "The moderator found the brief clear enough to generate an understanding draft without clarification questions.",
+        initialAnalysis.assessment,
         createdAt,
       ),
     );
@@ -120,6 +146,7 @@ export async function createForum(draft: CreateForumDraft): Promise<ForumRecord>
     clarificationHistory: [],
     understandingDraft: initialAnalysis.understandingDraft,
     activity,
+    debate: null,
   };
 
   await persistForum(forum);
@@ -129,6 +156,7 @@ export async function createForum(draft: CreateForumDraft): Promise<ForumRecord>
 export async function applyForumAction(
   forumId: string,
   action: ForumAction,
+  providerSecrets: ProviderSecrets = {},
 ): Promise<ForumRecord> {
   const forum = await getForumById(forumId);
 
@@ -137,18 +165,15 @@ export async function applyForumAction(
   }
 
   if (action.type === "submit-clarification") {
-    return submitClarificationAnswers(forum, action.answers);
+    return submitClarificationAnswers(forum, action.answers, providerSecrets);
   }
 
   if (action.type === "start-debate") {
     ensureStatus(forum.status, ["review"], "Only review forums can start debate.");
-    return updateForumLifecycle(
+    return startDebateOrchestration(
       forum,
-      "debating",
-      buildActivityEntry(
-        "debate-started",
-        "Debate started from the reviewed understanding draft.",
-      ),
+      providerSecrets,
+      createDebatePersistenceAdapter(forumId),
     );
   }
 
@@ -164,21 +189,51 @@ export async function applyForumAction(
     );
   }
 
+  if (action.type === "stop-debate") {
+    ensureStatus(
+      forum.status,
+      ["debating", "paused"],
+      "Only an active or paused debate can be stopped.",
+    );
+    const stoppedAt = new Date().toISOString();
+    const nextForum: ForumRecord = {
+      ...forum,
+      status: "stopped",
+      updatedAt: stoppedAt,
+      debate: forum.debate
+        ? {
+            ...forum.debate,
+            currentStage: "stopped",
+            stopRequestedAt: stoppedAt,
+            lastUpdatedAt: stoppedAt,
+          }
+        : forum.debate,
+      activity: [
+        ...forum.activity,
+        buildActivityEntry(
+          "stopped",
+          "Debate stop requested. The automation will not schedule additional turns.",
+          stoppedAt,
+        ),
+      ],
+    };
+
+    await persistForum(nextForum);
+    return nextForum;
+  }
+
   if (action.type === "resume-debate") {
     ensureStatus(forum.status, ["paused"], "Only a paused forum can resume debate.");
-    return updateForumLifecycle(
+    return resumeDebateOrchestration(
       forum,
-      "debating",
-      buildActivityEntry(
-        "resumed",
-        "The debate resumed from the previously paused state.",
-      ),
+      providerSecrets,
+      createDebatePersistenceAdapter(forumId),
     );
   }
 
   ensureStatus(
     forum.status,
-    ["debating", "paused", "review"],
+    ["debating", "paused", "review", "stopped"],
     "This forum cannot be completed from its current state.",
   );
   return updateForumLifecycle(
@@ -194,6 +249,7 @@ export async function applyForumAction(
 async function submitClarificationAnswers(
   forum: ForumRecord,
   answers: ClarificationAnswer[],
+  providerSecrets: ProviderSecrets,
 ): Promise<ForumRecord> {
   ensureStatus(
     forum.status,
@@ -227,20 +283,20 @@ async function submitClarificationAnswers(
       submittedAt,
     },
   ];
-  const followUpQuestions =
-    forum.clarificationRound < forum.maxClarificationRounds
-      ? buildFollowUpQuestions(forum.clarificationQuestions, normalizedAnswers)
-      : [];
-  const nextStatus: ForumStatus =
-    followUpQuestions.length > 0 ? "clarification" : "review";
+  const moderationResult = await reviewClarificationAnswers(
+    {
+      ...forum,
+      clarificationHistory: nextHistory,
+    },
+    normalizedAnswers.map((answer) => ({
+      questionId: answer.questionId,
+      answer: answer.answer,
+    })),
+    providerSecrets,
+  );
+  const nextStatus: ForumStatus = moderationResult.status;
   const nextClarificationRound =
     nextStatus === "clarification" ? forum.clarificationRound + 1 : 0;
-  const nextUnderstandingDraft = buildUnderstandingDraft({
-    ...forum,
-    clarificationHistory: nextHistory,
-    clarificationQuestions: followUpQuestions,
-    status: nextStatus,
-  });
   const nextActivity = [
     ...forum.activity,
     buildActivityEntry(
@@ -254,7 +310,7 @@ async function submitClarificationAnswers(
     nextActivity.push(
       buildActivityEntry(
         "clarification-requested",
-        `Clarification round ${nextClarificationRound} opened because at least one prior answer was still too brief or ambiguous.`,
+        `Clarification round ${nextClarificationRound} opened because the moderator still needs more information before debate.`,
         submittedAt,
       ),
     );
@@ -262,9 +318,7 @@ async function submitClarificationAnswers(
     nextActivity.push(
       buildActivityEntry(
         "review-ready",
-        forum.clarificationRound >= forum.maxClarificationRounds
-          ? "Maximum clarification rounds reached. The moderator promoted the current understanding draft to review."
-          : "Clarification is now complete and the moderator promoted the updated understanding draft to review.",
+        moderationResult.assessment,
         submittedAt,
       ),
     );
@@ -276,9 +330,9 @@ async function submitClarificationAnswers(
     updatedAt: submittedAt,
     roundsCompleted: forum.roundsCompleted + 1,
     clarificationRound: nextClarificationRound,
-    clarificationQuestions: followUpQuestions,
+    clarificationQuestions: moderationResult.questions,
     clarificationHistory: nextHistory,
-    understandingDraft: nextUnderstandingDraft,
+    understandingDraft: moderationResult.understandingDraft,
     activity: nextActivity,
   };
 
@@ -295,6 +349,13 @@ async function updateForumLifecycle(
     ...forum,
     status,
     updatedAt: activityEntry.createdAt,
+    debate: forum.debate
+      ? {
+          ...forum.debate,
+          currentStage: status === "completed" ? "completed" : forum.debate.currentStage,
+          lastUpdatedAt: activityEntry.createdAt,
+        }
+      : forum.debate,
     activity: [...forum.activity, activityEntry],
   };
 
@@ -319,7 +380,37 @@ async function persistForum(forum: ForumRecord): Promise<void> {
     `${forum.understandingDraft.trim()}\n`,
     "utf8",
   );
+  if (forum.debate?.brainstormSummary.trim()) {
+    await writeFile(
+      path.join(documentsDir, "brainstorming-summary.md"),
+      `${forum.debate.brainstormSummary.trim()}\n`,
+      "utf8",
+    );
+  }
+  if (forum.debate) {
+    await Promise.all(
+      forum.debate.documents.map(async (document) => {
+        const prefix = String(document.order).padStart(2, "0");
+        const slug = sanitizeFileSegment(document.title);
+        const documentName = `${prefix}-${slug}.md`;
+        const commentsName = `${prefix}-${slug}.comments.md`;
+        const markdown = (document.finalMarkdown || document.latestMarkdown).trim();
+
+        await writeFile(
+          path.join(documentsDir, documentName),
+          `${markdown || `# ${document.title}\n\nPending drafting.\n`}`,
+          "utf8",
+        );
+        await writeFile(
+          path.join(documentsDir, commentsName),
+          renderDocumentComments(document.title, document.comments),
+          "utf8",
+        );
+      }),
+    );
+  }
   await writeFile(path.join(logsDir, "activity.md"), renderActivityLog(forum), "utf8");
+  await writeFile(path.join(logsDir, "moderator-context.md"), renderModeratorContextLog(forum), "utf8");
 }
 
 async function readForumRecord(id: string): Promise<ForumRecord> {
@@ -373,192 +464,6 @@ function normalizeDraft(draft: CreateForumDraft) {
   };
 }
 
-function buildInitialWorkflow(draft: ReturnType<typeof normalizeDraft>) {
-  const questions = buildInitialQuestions(draft);
-  const status: ForumStatus = questions.length > 0 ? "clarification" : "review";
-
-  return {
-    status,
-    questions,
-    understandingDraft: buildUnderstandingDraft({
-      id: "pending",
-      title: draft.title,
-      summary: buildForumSummary(draft.idea),
-      idea: draft.idea,
-      requestedDocuments: draft.requestedDocuments,
-      moderator: draft.moderator,
-      agentCount: draft.agentCount,
-      agents: draft.agents,
-      status,
-      createdAt: "",
-      updatedAt: "",
-      documentsRequested: draft.requestedDocuments.length,
-      roundsCompleted: 0,
-      clarificationRound: status === "clarification" ? 1 : 0,
-      maxClarificationRounds: 3,
-      clarificationQuestions: questions,
-      clarificationHistory: [],
-      understandingDraft: "",
-      activity: [],
-    }),
-  };
-}
-
-function buildInitialQuestions(
-  draft: ReturnType<typeof normalizeDraft>,
-): ClarificationQuestion[] {
-  const questions: ClarificationQuestion[] = [];
-  const ideaWordCount = countWords(draft.idea);
-  const hasTechnicalConstraints = /next|docker|tailwind|sqlite|api|markdown|copilot|openrouter|deepseek/iu.test(
-    draft.idea,
-  );
-
-  if (draft.title.length < 10) {
-    questions.push({
-      id: "scope-title",
-      prompt: "What is the clearest working title or scope label for this forum?",
-      rationale:
-        "The current title is short enough that later steps could interpret the scope too broadly.",
-      suggestedAnswers: [
-        "Use a more specific product or subsystem name.",
-        "Name the concrete workflow being designed.",
-        "Include the target outcome in the forum title.",
-      ],
-    });
-  }
-
-  if (ideaWordCount < 45) {
-    questions.push({
-      id: "success-outcome",
-      prompt: "What should success look like once this debate finishes?",
-      rationale:
-        "The current brief is too compact to infer a clear target outcome for the moderator and agents.",
-      suggestedAnswers: [
-        "A production-ready implementation plan.",
-        "A reviewed architecture plus execution checklist.",
-        "A clarified brief and a first accepted understanding draft.",
-      ],
-    });
-  }
-
-  if (draft.requestedDocuments.length < 2) {
-    questions.push({
-      id: "deliverables",
-      prompt: "Which Markdown deliverables are mandatory before the forum can be considered complete?",
-      rationale:
-        "The list of requested documents is still too small to anchor later document rounds confidently.",
-      suggestedAnswers: [
-        "Architecture overview, data model, and deployment guide.",
-        "Product brief, implementation plan, and risk register.",
-        "One final deliverable plus a validation checklist.",
-      ],
-    });
-  }
-
-  if (!hasTechnicalConstraints) {
-    questions.push({
-      id: "constraints",
-      prompt: "Are there any technical, product, or operational constraints that the moderator must preserve?",
-      rationale:
-        "The brief does not yet expose hard constraints, so the generated understanding draft may miss guardrails.",
-      suggestedAnswers: [
-        "Keep the current stack and stay self-hosted.",
-        "Preserve the existing UX and file layout.",
-        "Prefer minimal, incremental changes over broad rewrites.",
-      ],
-    });
-  }
-
-  return questions.slice(0, 3);
-}
-
-function buildFollowUpQuestions(
-  previousQuestions: ClarificationQuestion[],
-  answers: ClarificationAnswer[],
-): ClarificationQuestion[] {
-  return previousQuestions
-    .flatMap((question) => {
-      const answer = answers.find((entry) => entry.questionId === question.id);
-
-      if (!answer || !isWeakAnswer(answer.answer)) {
-        return [];
-      }
-
-      return [
-        {
-          id: `${question.id}-follow-up`,
-          prompt: `Please expand this clarification: ${question.prompt}`,
-          rationale:
-            "The previous answer was too brief or ambiguous to remove uncertainty from the moderator brief.",
-          suggestedAnswers: question.suggestedAnswers,
-        },
-      ];
-    })
-    .slice(0, 2);
-}
-
-function isWeakAnswer(answer: string) {
-  const normalized = answer.trim();
-  return (
-    countWords(normalized) < 4 ||
-    /^(n\/a|na|none|no se|idk|skip)$/iu.test(normalized)
-  );
-}
-
-function buildUnderstandingDraft(forum: ForumRecord) {
-  const clarificationLines =
-    forum.clarificationHistory.length > 0
-      ? forum.clarificationHistory.flatMap((round) => [
-          `### Round ${round.round}`,
-          ...round.answers.map((answer) => {
-            return `- **${answer.prompt}** ${answer.answer}`;
-          }),
-        ])
-      : ["- No clarification answers have been submitted yet."];
-
-  const moderationAssessment =
-    forum.status === "clarification"
-      ? `The moderator still needs clarification round ${forum.clarificationRound} before moving this forum to review.`
-      : forum.status === "review"
-        ? "The moderator considers the brief sufficiently clear and ready for review before debate."
-        : forum.status === "debating"
-          ? "The reviewed understanding draft is now being used as the active debate brief."
-          : forum.status === "paused"
-            ? "The debate brief is ready, but debate is currently paused."
-            : "The forum is complete for the currently implemented workflow slice.";
-
-  return [
-    `# Understanding draft: ${forum.title}`,
-    "",
-    "## Problem statement",
-    forum.idea,
-    "",
-    "## Requested Markdown deliverables",
-    ...forum.requestedDocuments.map((document) => `- ${document}`),
-    "",
-    "## Moderator configuration",
-    `- Provider: ${forum.moderator.provider}`,
-    `- Model: ${forum.moderator.modelId}`,
-    `- Agent count: ${forum.agentCount}`,
-    "",
-    "## Participating agents",
-    ...forum.agents.map(
-      (agent) =>
-        `- Agent ${agent.slot}: ${agent.name} (${agent.provider} / ${agent.modelId})`,
-    ),
-    "",
-    "## Clarification history",
-    ...clarificationLines,
-    "",
-    "## Moderation assessment",
-    moderationAssessment,
-    "",
-    "## Current assumptions",
-    `- Deliverables stay Markdown-only.`,
-    `- The forum should preserve the configured providers and models.`,
-    `- The current implementation slice stores forum state, understanding drafts, and activity logs on the Agora server.`,
-  ].join("\n");
-}
 
 function buildForumSummary(idea: string) {
   const normalized = idea.replace(/\s+/gu, " ").trim();
@@ -569,6 +474,24 @@ function buildForumSummary(idea: string) {
   return `${normalized.slice(0, 177)}...`;
 }
 
+export async function ensureForumDebateIsRunning(
+  id: string,
+  providerSecrets: ProviderSecrets,
+) {
+  const forum = await getForumById(id);
+
+  if (!forum || forum.status !== "debating" || !forum.debate) {
+    return forum;
+  }
+
+  if (forum.debate.currentStage === "completed" || forum.debate.currentStage === "stopped") {
+    return forum;
+  }
+
+  await ensureDebateRun(id, providerSecrets, createDebatePersistenceAdapter(id));
+  return getForumById(id);
+}
+
 function renderActivityLog(forum: ForumRecord) {
   return [
     `# Activity log: ${forum.title}`,
@@ -576,6 +499,47 @@ function renderActivityLog(forum: ForumRecord) {
     ...forum.activity.map(
       (entry) => `- ${entry.createdAt} · ${entry.kind} · ${entry.message}`,
     ),
+    "",
+  ].join("\n");
+}
+
+function renderModeratorContextLog(forum: ForumRecord) {
+  if (!forum.debate) {
+    return [
+      `# Moderator context: ${forum.title}`,
+      "",
+      "No debate context captured yet.",
+      "",
+    ].join("\n");
+  }
+
+  return [
+    `# Moderator context: ${forum.title}`,
+    "",
+    `- Stage: ${forum.debate.currentStage}`,
+    `- Usage tokens: ${forum.debate.moderatorContext.usageTokens}`,
+    `- Usage ratio: ${forum.debate.moderatorContext.usageRatio.toFixed(3)}`,
+    `- Warning ratio: ${forum.debate.moderatorContext.warningRatio}`,
+    `- Compaction mode: ${forum.debate.moderatorContext.compactionMode}`,
+    `- Compaction events: ${forum.debate.moderatorContext.compactionEvents}`,
+    "",
+    ...forum.debate.moderatorContext.entries.map(
+      (entry) => `## ${entry.phase} · ${entry.role}\n\n${entry.content}`,
+    ),
+    "",
+  ].join("\n");
+}
+
+function renderDocumentComments(title: string, comments: ForumRecord["debate"] extends null ? never : NonNullable<ForumRecord["debate"]>["documents"][number]["comments"]) {
+  return [
+    `# Comments: ${title}`,
+    "",
+    ...(comments.length > 0
+      ? comments.map(
+          (comment) =>
+            `- ${comment.createdAt} · ${comment.agentName} · ${comment.anchor} · ${comment.text}`,
+        )
+      : ["No comments recorded." as const]),
     "",
   ].join("\n");
 }
@@ -593,8 +557,21 @@ function buildActivityEntry(
   };
 }
 
-function countWords(value: string) {
-  return value.trim().split(/\s+/u).filter(Boolean).length;
+function sanitizeFileSegment(value: string) {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "")
+    .slice(0, 48);
+
+  return normalized || "document";
+}
+
+function createDebatePersistenceAdapter(forumId: string) {
+  return {
+    loadForum: () => getForumById(forumId),
+    persistForum,
+  };
 }
 
 function ensureStatus(

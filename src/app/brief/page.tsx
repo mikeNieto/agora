@@ -45,12 +45,14 @@ export default function BriefPage() {
 
         <div className="summary-panel space-y-4">
           <p className="panel-kicker">Current status</p>
-          <h2 className="section-title">Phase 1 implementation is live.</h2>
+          <h2 className="section-title">
+            Automatic debate orchestration is live.
+          </h2>
           <p className="text-sm leading-7 text-(--text-secondary)">
-            The active slice now covers the app shell, persisted forum
-            creation, the clarification-to-review workflow, and stateful forum
-            progression into debate, pause, resume, and completion. The
-            remaining major slice is the fully automatic orchestration engine.
+            The active slice now covers the app shell, persisted forum creation,
+            clarification-to-review, automatic brainstorming, collaborative
+            document drafting, and stateful debate progression through pause,
+            stop, and completion.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link className="primary-button" href="/forums/new">

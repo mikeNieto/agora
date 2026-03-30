@@ -8,7 +8,8 @@ export type ForumStatus =
   | "review"
   | "debating"
   | "completed"
-  | "paused";
+  | "paused"
+  | "stopped";
 export type AgentColor =
   | "coral"
   | "sky"
@@ -93,6 +94,7 @@ export type ClarificationQuestion = {
   prompt: string;
   rationale: string;
   suggestedAnswers: string[];
+  preferredAnswer: string;
 };
 
 export type ClarificationAnswer = {
@@ -110,14 +112,144 @@ export type ClarificationRound = {
   submittedAt: string;
 };
 
+export type DebateStage =
+  | "idle"
+  | "brainstorming"
+  | "documentation"
+  | "completed"
+  | "stopped";
+
+export type DebateDocumentStatus = "pending" | "active" | "closed";
+
+export type DebateContextPhase =
+  | "understanding"
+  | "brainstorming"
+  | "documentation";
+
+export type DebateContextRole =
+  | "system"
+  | "moderator"
+  | "agent"
+  | "document"
+  | "summary";
+
+export type DebateContextEntry = {
+  id: string;
+  phase: DebateContextPhase;
+  role: DebateContextRole;
+  content: string;
+  estimatedTokens?: number;
+  pinned?: boolean;
+};
+
+export type DebateContextSnapshot = {
+  entries: DebateContextEntry[];
+  usageTokens: number;
+  usageRatio: number;
+  warningRatio: number;
+  contextWindowLabel: string;
+  compactionMode: ModeratorContextCompactionMode;
+  compactionEvents: number;
+  handledBySdk: boolean;
+};
+
+export type BrainstormTurn = {
+  id: string;
+  agentId: string;
+  agentName: string;
+  summary: string;
+  markdown: string;
+  createdAt: string;
+  order: number;
+};
+
+export type BrainstormRound = {
+  round: number;
+  turnOrder: string[];
+  turns: BrainstormTurn[];
+  moderatorSummary: string;
+  unresolvedTopics: string[];
+  consensusReached: boolean;
+  forcedClosure: boolean;
+  createdAt: string;
+};
+
+export type DocumentComment = {
+  id: string;
+  agentId: string;
+  agentName: string;
+  anchor: string;
+  text: string;
+  createdAt: string;
+  round: number;
+};
+
+export type DocumentTurn = {
+  id: string;
+  round: number;
+  agentId: string;
+  agentName: string;
+  role: "author" | "editor" | "critic";
+  summary: string;
+  markdown: string;
+  comments: DocumentComment[];
+  createdAt: string;
+  order: number;
+};
+
+export type DocumentRound = {
+  round: number;
+  turnOrder: string[];
+  turns: DocumentTurn[];
+  moderatorSummary: string;
+  unresolvedTopics: string[];
+  closed: boolean;
+  forcedClosure: boolean;
+  createdAt: string;
+};
+
+export type DebateDocument = {
+  id: string;
+  title: string;
+  order: number;
+  status: DebateDocumentStatus;
+  currentRound: number;
+  maxRounds: number;
+  assignedAgentIds: string[];
+  rounds: DocumentRound[];
+  latestMarkdown: string;
+  finalMarkdown: string;
+  comments: DocumentComment[];
+  moderatorSummary: string;
+  unresolvedTopics: string[];
+  closedAt?: string;
+};
+
+export type DebateState = {
+  systemPrompt: string;
+  currentStage: DebateStage;
+  brainstormMaxRounds: number;
+  documentMaxRounds: number;
+  currentBrainstormRound: number;
+  brainstormSummary: string;
+  brainstormRounds: BrainstormRound[];
+  currentDocumentIndex: number;
+  documents: DebateDocument[];
+  moderatorContext: DebateContextSnapshot;
+  lastUpdatedAt: string;
+  stopRequestedAt?: string;
+};
+
 export type ForumActivityKind =
   | "created"
   | "clarification-requested"
   | "clarification-submitted"
   | "review-ready"
   | "debate-started"
+  | "debate-progress"
   | "paused"
   | "resumed"
+  | "stopped"
   | "completed";
 
 export type ForumActivityEntry = {
@@ -147,4 +279,5 @@ export type ForumRecord = {
   clarificationHistory: ClarificationRound[];
   understandingDraft: string;
   activity: ForumActivityEntry[];
+  debate: DebateState | null;
 };

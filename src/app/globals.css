@@ -18,6 +18,7 @@
   --status-debating: #6d44d8;
   --status-completed: #1a8b63;
   --status-paused: #b1445e;
+  --status-stopped: #7f1d1d;
   --color-coral: #f1665e;
   --color-sky: #2d90f5;
   --color-emerald: #2fa37d;
@@ -313,6 +314,11 @@ button {
 .status-badge--paused {
   background: color-mix(in srgb, var(--status-paused) 14%, transparent);
   color: var(--status-paused);
+}
+
+.status-badge--stopped {
+  background: color-mix(in srgb, var(--status-stopped) 14%, transparent);
+  color: var(--status-stopped);
 }
 
 .form-panel,

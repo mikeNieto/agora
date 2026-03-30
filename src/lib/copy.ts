@@ -40,6 +40,10 @@ export type CopyDictionary = {
   openSettings: string;
   confirmLaunch: string;
   confirmBody: string;
+  deleteForum: string;
+  deleteForumConfirmTitle: string;
+  deleteForumConfirmBody: string;
+  deleteForumSubmitting: string;
   cancel: string;
   submit: string;
   settingsTitle: string;
@@ -125,9 +129,9 @@ export const copy: Record<AppLanguage, CopyDictionary> = {
     navNewForum: "New forum",
     navSettings: "Settings",
     heroEyebrow: "Multi-agent debate workspace",
-    heroTitle: "Design debate workflows before wiring real providers.",
+    heroTitle: "Run moderator-led AI debates with persisted Markdown outputs.",
     heroBody:
-      "This first implementation pass establishes the product shell, provider-aware forum setup, and the visual system that the later orchestration engine will plug into.",
+      "Agora now persists forum setup, moderator clarification, automatic debate orchestration, and collaborative Markdown drafting across the selected AI providers.",
     heroPrimary: "Create forum",
     heroSecondary: "Read brief",
     metricsTitle: "Current signal",
@@ -157,6 +161,11 @@ export const copy: Record<AppLanguage, CopyDictionary> = {
     confirmLaunch: "Start clarification",
     confirmBody:
       "The moderator will review the idea, decide whether clarification is needed, and generate the first understanding draft.",
+    deleteForum: "Delete forum",
+    deleteForumConfirmTitle: "Delete forum",
+    deleteForumConfirmBody:
+      "This will permanently remove the forum, its activity log, and its generated Markdown working files.",
+    deleteForumSubmitting: "Deleting...",
     cancel: "Cancel",
     submit: "Submit forum",
     settingsTitle: "Provider settings",
@@ -264,6 +273,7 @@ export const copy: Record<AppLanguage, CopyDictionary> = {
       debating: "Debating",
       completed: "Completed",
       paused: "Paused",
+      stopped: "Stopped",
     },
   },
   es: {
@@ -273,9 +283,9 @@ export const copy: Record<AppLanguage, CopyDictionary> = {
     navNewForum: "Nuevo foro",
     navSettings: "Settings",
     heroEyebrow: "Espacio de debate multiagente",
-    heroTitle: "Diseña el flujo de debate antes de cablear los proveedores reales.",
+    heroTitle: "Ejecuta debates de IA guiados por moderador con salidas Markdown persistidas.",
     heroBody:
-      "Esta primera etapa de implementación deja lista la base visual, la creación de foros con conciencia de proveedor y el shell del producto donde luego se conectará el motor de orquestación.",
+      "Agora ya persiste la creación de foros, la clarificación del moderador, la orquestación automática del debate y la redacción colaborativa en Markdown entre los proveedores seleccionados.",
     heroPrimary: "Crear foro",
     heroSecondary: "Leer brief",
     metricsTitle: "Estado actual",
@@ -305,6 +315,11 @@ export const copy: Record<AppLanguage, CopyDictionary> = {
     confirmLaunch: "Iniciar clarificación",
     confirmBody:
       "El moderador revisará la idea, decidirá si necesita preguntas de aclaración y generará el primer borrador de entendimiento.",
+    deleteForum: "Borrar foro",
+    deleteForumConfirmTitle: "Borrar foro",
+    deleteForumConfirmBody:
+      "Esto eliminará de forma permanente el foro, su registro de actividad y sus archivos Markdown de trabajo.",
+    deleteForumSubmitting: "Borrando...",
     cancel: "Cancelar",
     submit: "Enviar foro",
     settingsTitle: "Settings de proveedores",
@@ -412,6 +427,7 @@ export const copy: Record<AppLanguage, CopyDictionary> = {
       debating: "Debatiendo",
       completed: "Completado",
       paused: "Pausado",
+      stopped: "Detenido",
     },
   },
 };

@@ -12,7 +12,10 @@ function buildDashboardMetrics(
 ): DashboardMetric[] {
   const totalForums = forums.length;
   const activeForums = forums.filter(
-    (forum) => forum.status !== "completed" && forum.status !== "paused",
+    (forum) =>
+      forum.status !== "completed" &&
+      forum.status !== "paused" &&
+      forum.status !== "stopped",
   ).length;
   const needsAttention = forums.filter(
     (forum) => forum.status === "clarification" || forum.status === "review",

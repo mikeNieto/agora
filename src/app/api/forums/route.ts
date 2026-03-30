@@ -3,6 +3,7 @@ import {
   listForumSummaries,
 } from "@/lib/forum-store";
 import type { CreateForumDraft } from "@/lib/domain";
+import { getProviderSecrets } from "@/lib/provider-settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +26,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const forum = await createForum(payload);
+    const providerSecrets = await getProviderSecrets();
+    const forum = await createForum(payload, providerSecrets);
     return Response.json({ forum }, { status: 201 });
   } catch (error) {
     return Response.json(

@@ -1,5 +1,10 @@
-import { applyForumAction, getForumById } from "@/lib/forum-store";
+import {
+  applyForumAction,
+  deleteForumById,
+  ensureForumDebateIsRunning,
+} from "@/lib/forum-store";
 import type { ClarificationAnswer } from "@/lib/domain";
+import { getProviderSecrets } from "@/lib/provider-settings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,7 +14,8 @@ export async function GET(
   context: { params: Promise<{ forumId: string }> },
 ) {
   const { forumId } = await context.params;
-  const forum = await getForumById(forumId);
+  const providerSecrets = await getProviderSecrets();
+  const forum = await ensureForumDebateIsRunning(forumId, providerSecrets);
 
   if (!forum) {
     return Response.json({ error: "Forum not found." }, { status: 404 });
@@ -29,6 +35,7 @@ export async function PATCH(
           | "submit-clarification"
           | "start-debate"
           | "pause-debate"
+          | "stop-debate"
           | "resume-debate"
           | "complete-forum";
         answers?: ClarificationAnswer[];
@@ -43,15 +50,16 @@ export async function PATCH(
   }
 
   try {
+    const providerSecrets = await getProviderSecrets();
     const forum =
       payload.action === "submit-clarification"
         ? await applyForumAction(forumId, {
             type: payload.action,
             answers: payload.answers ?? [],
-          })
+          }, providerSecrets)
         : await applyForumAction(forumId, {
             type: payload.action,
-          });
+          }, providerSecrets);
 
     return Response.json({ forum });
   } catch (error) {
@@ -59,6 +67,26 @@ export async function PATCH(
       {
         error:
           error instanceof Error ? error.message : "Unable to update forum.",
+      },
+      { status: error instanceof Error && error.message === "Forum not found." ? 404 : 400 },
+    );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ forumId: string }> },
+) {
+  const { forumId } = await context.params;
+
+  try {
+    await deleteForumById(forumId);
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    return Response.json(
+      {
+        error:
+          error instanceof Error ? error.message : "Unable to delete forum.",
       },
       { status: error instanceof Error && error.message === "Forum not found." ? 404 : 400 },
     );
